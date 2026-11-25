@@ -1,0 +1,97 @@
+{
+  "whale-fall": [
+    {
+      "id": "wp-vertebra-sample",
+      "position": { "x": -7.76, "y": -1.84, "z": -10.91 },
+      "titleKey": "waypoints.whale_fall.vertebra.title",
+      "content": {
+        "descriptionKey": "waypoints.whale_fall.vertebra.description",
+        "youtubeId": "NqnWDBwp-k8",
+        "vrVideoKey": null,
+        "videoCaptionKey": "waypoints.whale_fall.vertebra.caption"
+      }
+    },
+    {
+      "id": "wp-lab-photo",
+      "position": { "x": 2.74, "y": -1.84, "z": -10.5 },
+      "titleKey": "waypoints.whale_fall.lab.title",
+      "content": {
+        "descriptionKey": "waypoints.whale_fall.lab.description",
+        "gallery": [
+          {
+            "thumbKey": "photos.labo_vertebra.thumb",
+            "fullKey": "photos.labo_vertebra.full",
+            "captionKey": "waypoints.whale_fall.lab.thumb1"
+          },
+          {
+            "thumbKey": "photos.labo_vertebra2.thumb",
+            "fullKey": "photos.labo_vertebra2.full",
+            "captionKey": "waypoints.whale_fall.lab.thumb2"
+          },
+          {
+            "thumbKey": "photos.labo_vertebra3.thumb",
+            "fullKey": "photos.labo_vertebra3.full",
+            "captionKey": "waypoints.whale_fall.lab.thumb3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wp-fauna",
+      "position": { "x": 6.26, "y": -1.84, "z": -10.44 },
+      "titleKey": "waypoints.whale_fall.fauna.title",
+      "content": {
+        "descriptionKey": "waypoints.whale_fall.fauna.description",
+        "gallery": [
+          {
+            "thumbKey": "photos.isopods_macro.thumb",
+            "fullKey": "photos.isopods_macro.full",
+            "captionKey": "waypoints.whale_fall.fauna.caption"
+          },
+          {
+            "thumbKey": "photos.whalefall_crinoid_vertebra.thumb",
+            "fullKey": "photos.whalefall_crinoid_vertebra.full",
+            "captionKey": "waypoints.whale_fall.fauna.caption2"
+          },
+          {
+            "thumbKey": "photos.whalefall_sponge_arthropods.thumb",
+            "fullKey": "photos.whalefall_sponge_arthropods.full",
+            "captionKey": "waypoints.whale_fall.fauna.caption3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wp-subastian",
+      "position": { "x": -1.19, "y": -1.84, "z": -9.14 },
+      "titleKey": "waypoints.whale_fall.subastian.title",
+      "content": {
+        "descriptionKey": "waypoints.whale_fall.subastian.description",
+        "gallery": [
+          {
+            "thumbKey": "photos.rov_subastian_arms.thumb",
+            "fullKey": "photos.rov_subastian_arms.full",
+            "captionKey": "waypoints.whale_fall.subastian.caption"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wp-mission-overview",
+      "position": { "x": 9.26, "y": -1.84, "z": -10.0 },
+      "titleKey": "waypoints.whale_fall.mission.title",
+      "content": {
+        "descriptionKey": "waypoints.whale_fall.mission.description",
+        "gallery": [
+          {
+            "thumbKey": "photos.fkt251206_crew.thumb",
+            "fullKey": "photos.fkt251206_crew.full",
+            "captionKey": "waypoints.whale_fall.mission.caption"
+          }
+        ]
+      }
+    }
+  ],
+  "clam-bed": [],
+  "giant-corals": []
+}

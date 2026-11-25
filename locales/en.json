@@ -1,0 +1,114 @@
+{
+  "menu": {
+    "title": "VIDA EN LOS EXTREMOS",
+    "expedition": "Expedition FKt251206 Bravo | R/V Falkor (too)",
+    "dive_id": "DIVE",
+    "depth": "DEPTH",
+    "launch": "LAUNCH DIVE",
+    "coming_soon": "COMING SOON",
+    "footer": "EST. 2026 | Lisandro Scarrone",
+    "gaming_mode": "MISSION MODE",
+    "language": "LANGUAGE",
+    "test_model": "TEST MODEL"
+  },
+  "credits": {
+    "assets": "Visual assets © Schmidt Ocean Institute (FKt251206), adapted (cropped, resized) and used under",
+    "sharealike": ". This non-commercial educational project is shared under the same license.",
+    "models_title": "3D models"
+  },
+  "habitats": {
+    "whale_fall": "The Whale Fall",
+    "clam_bed": "Vesicomyidae Clam Bed",
+    "giant_corals": "Giant Corals Bed",
+    "model_test": "Test Habitat"
+  },
+  "telemetry": {
+    "site": "SITE",
+    "id": "ID",
+    "heading": "HDG",
+    "depth": "DEPTH",
+    "temp": "TEMP",
+    "salinity": "SALINITY",
+    "o2": "O₂"
+  },
+  "ui": {
+    "loading": "LOADING...",
+    "loading_model": "Loading 3D model...",
+    "loading_progress": "Loading scene...",
+    "error_load_title": "Loading Error",
+    "error_load_model": "Failed to load the 3D site model.",
+    "error_retry": "Retry",
+    "error_webgl": "WebGL is not available on this device.",
+    "system_log": "SYSTEM LOG",
+    "scanning_data": "Scanning data...",
+    "toggle_hud": "Toggle HUD",
+    "menu": "Menu",
+    "system_navigation": "System Navigation",
+    "mission_controls": "Mission Controls",
+    "toggle_gyro": "Toggle Gyroscope",
+    "return_to_home": "Return to Home",
+    "explore": "EXPLORE",
+    "reset_position": "Reset Position",
+    "speed": "SPD",
+    "zoom": "ZOM",
+    "vertical": "VRT",
+    "mission_analyzed": "SAMPLES ANALYZED",
+    "mission_complete": "MISSION COMPLETE!"
+  },
+  "vr": {
+    "enter": "ENTER VR",
+    "exit": "EXIT VR",
+    "preview_3d": "3D PREVIEW",
+    "video_unavailable": "VR video unavailable; watch on YouTube",
+    "comfort_turn": "Comfort Turn"
+  },
+  "controls": {
+    "title": "MISSION CONTROLS",
+    "gamepad": "GAMEPAD",
+    "keyboard": "KEYBOARD",
+    "piloting_nav": "PILOTING & NAVIGATION",
+    "mission_systems": "MISSION & SYSTEMS",
+    "move_strafe": "MOVE FORWARD / STRAFE",
+    "camera_look": "CAMERA LOOK",
+    "ascend_descend": "ASCEND / DESCEND",
+    "zoom_in_out": "ZOOM IN / OUT",
+    "speed_inc_dec": "SPEED +/−",
+    "scan_waypoint": "SCAN WAYPOINT",
+    "open_menu": "OPEN MENU",
+    "close": "CLOSE",
+    "switch_input": "SWITCH INPUT"
+  },
+  "waypoints": {
+    "whale_fall": {
+      "vertebra": {
+        "title": "The Whale Vertebra",
+        "description": "When a whale dies and sinks, its skeleton becomes a nutrient source that sustains deep-sea life for decades. This vertebra was found at 3,895 m depth, during a late stage of ecological succession. The bone is slowly mineralizing back into the seafloor, and its hard surface provides an anchor point for corals and other sessile organisms in an environment dominated by soft sediments.",
+        "caption": "Clip: Moment of extraction - R/V Falkor (too)"
+      },
+      "fauna": {
+        "title": "Whale-Fall Fauna",
+        "description": "A whale fall becomes an oasis on the seafloor. As the skeleton is slowly recycled, it is colonized by a succession of organisms that find shelter and food on the exposed bones: feather stars (crinoids) anchor to the vertebrae, small isopods gather in 'trains' along the bone, and stalked sponges filter the surrounding water.",
+        "caption": "The isopod train — in-situ macrophotography",
+        "caption2": "A crinoid (feather star) anchored to the whale vertebra",
+        "caption3": "A stalked sponge colonized by small arthropods"
+      },
+      "subastian": {
+        "title": "ROV SuBastian",
+        "description": "SuBastian is the ROV used to explore and sample these sites. The 3D model you are navigating is a digital twin built from photogrammetry — thousands of high-resolution images processed under the lead of pilot Ben Erwin. SuBastian's robotic arms enable precise collection of fragile biological samples with minimal disturbance to the surrounding ecosystem.",
+        "caption": "SuBastian's manipulator arms at work on the seafloor"
+      },
+      "lab": {
+        "title": "From Seafloor to Lab",
+        "description": "Once a sample reaches the surface, it is immediately moved to the Cold Room. A multidisciplinary team handles recovery and analysis; the Benthic Ecology and Taxonomy teams then work to identify species and study deep-sea biodiversity, keeping everything in cold storage at +2 °C.",
+        "thumb1": "José Isola and Daniel Lauretta handling the vertebra after recovery.",
+        "thumb2": "Detail of the whale vertebra.",
+        "thumb3": "Detail of the bone structure in the laboratory."
+      },
+      "mission": {
+        "title": "Expedition FKt251206",
+        "description": "Led by María Emilia Bravo, the FKt251206 campaign aimed to describe and classify the broad diversity of deep-sea benthic landscapes and ecosystems in the Argentine Sea. This included identifying priority areas for future research and taking environmental management actions.",
+        "caption": "The FKt251206 team and crew aboard the R/V Falkor (too). Photo: Vallejo Prut / Schmidt Ocean Institute"
+      }
+    }
+  }
+}
