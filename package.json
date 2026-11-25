@@ -1,0 +1,15 @@
+{
+  "name": "vidaenlosextremos-vr-2",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "assets:models": "node scripts/optimize-models.mjs",
+    "assets:media": "node scripts/optimize-media.mjs",
+    "validate:data": "node scripts/validate-data.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
+  }
+}

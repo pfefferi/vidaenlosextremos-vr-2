@@ -1,0 +1,262 @@
+{
+  "models.whale-fall": {
+    "path": "v2/models/whale-fall.5fbb94cd.glb",
+    "bytes": 5039704,
+    "sha256": "5fbb94cd0c295f08dd354abf688938372489c11293596035dc48fff4737c940d",
+    "contentType": "model/gltf-binary",
+    "triangles": 747516,
+    "vertices": 440290,
+    "doubleSidedCount": 4,
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "EXT_texture_webp",
+      "KHR_mesh_quantization"
+    ]
+  },
+  "models.clam-bed": {
+    "path": "v2/models/clam-bed.89a9fb10.glb",
+    "bytes": 12253440,
+    "sha256": "89a9fb10e3fef69fa17aa69d3ed38f9276f6b1e4ce9acd749dcf3d2c119734e3",
+    "contentType": "model/gltf-binary",
+    "triangles": 1084674,
+    "vertices": 1191243,
+    "doubleSidedCount": 4,
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "EXT_texture_webp",
+      "KHR_mesh_quantization"
+    ]
+  },
+  "cards.whale-fall.env.600": {
+    "path": "v2/cards/whale-fall-env-600.c6b70ca4.webp",
+    "bytes": 11968,
+    "sha256": "c6b70ca4c7707a428fdf50eecbedda93faef2bf49b632bd1b482eb21162f8624",
+    "contentType": "image/webp",
+    "width": 600,
+    "height": 360
+  },
+  "cards.whale-fall.env.1200": {
+    "path": "v2/cards/whale-fall-env-1200.64bca441.webp",
+    "bytes": 44978,
+    "sha256": "64bca441f476ba30c923259d5dfe7e1eb2c644e4d3a5922518ee40e73244ac62",
+    "contentType": "image/webp",
+    "width": 1200,
+    "height": 720
+  },
+  "cards.whale-fall.close.600": {
+    "path": "v2/cards/whale-fall-close-600.9ec26cb4.webp",
+    "bytes": 28282,
+    "sha256": "9ec26cb421e91ccbf2f3a4a2cd0fc5fbae56986c859cb600d1a8152c948b3d5b",
+    "contentType": "image/webp",
+    "width": 600,
+    "height": 360
+  },
+  "cards.whale-fall.close.1200": {
+    "path": "v2/cards/whale-fall-close-1200.6ac4e21b.webp",
+    "bytes": 112392,
+    "sha256": "6ac4e21bd682818ed2b0d5f3214ecd6b9369e5c961c099861b1bf3ab762b84c0",
+    "contentType": "image/webp",
+    "width": 1200,
+    "height": 720
+  },
+  "cards.clam-bed.env.600": {
+    "path": "v2/cards/clam-bed-env-600.e8bb6c4e.webp",
+    "bytes": 37896,
+    "sha256": "e8bb6c4e1e35ff6d7d17d7c1d9ec839ba0cefe7ecc0b7e39ea6362cdd4d9297f",
+    "contentType": "image/webp",
+    "width": 600,
+    "height": 360
+  },
+  "cards.clam-bed.env.1200": {
+    "path": "v2/cards/clam-bed-env-1200.dc10f383.webp",
+    "bytes": 137220,
+    "sha256": "dc10f3830c46643762d48fd7e49374ff381af7991f5a667646fcfdd0612e1300",
+    "contentType": "image/webp",
+    "width": 1200,
+    "height": 720
+  },
+  "cards.clam-bed.close.600": {
+    "path": "v2/cards/clam-bed-close-600.f9b17fc8.webp",
+    "bytes": 9196,
+    "sha256": "f9b17fc8fb71f47cca67a5920fce94d673e35ae4f8b2c287b7cb6f46885a4cf5",
+    "contentType": "image/webp",
+    "width": 600,
+    "height": 360
+  },
+  "cards.clam-bed.close.1200": {
+    "path": "v2/cards/clam-bed-close-1200.b2028fc5.webp",
+    "bytes": 27712,
+    "sha256": "b2028fc563aab9b2dc764026b11e0967cb217b99d96c615d568293521cc1985f",
+    "contentType": "image/webp",
+    "width": 1200,
+    "height": 720
+  },
+  "cards.giant-corals.env.600": {
+    "path": "v2/cards/giant-corals-env-600.b8af0318.webp",
+    "bytes": 39450,
+    "sha256": "b8af0318cfada9437aa43067ef04a3127ecc7bb7daaa2ec55c465f1d61605e32",
+    "contentType": "image/webp",
+    "width": 600,
+    "height": 360
+  },
+  "cards.giant-corals.env.1200": {
+    "path": "v2/cards/giant-corals-env-1200.cc4ebdd3.webp",
+    "bytes": 144008,
+    "sha256": "cc4ebdd3bf0a15267ac62ef67641b7e42c14eaaa601abd90d6d1842276845fdf",
+    "contentType": "image/webp",
+    "width": 1200,
+    "height": 720
+  },
+  "cards.giant-corals.close.600": {
+    "path": "v2/cards/giant-corals-close-600.1aac4335.webp",
+    "bytes": 35302,
+    "sha256": "1aac4335bb8207d282b7e3b25ccd42e8181a0bfe39537e1b692ed208e84f2fb0",
+    "contentType": "image/webp",
+    "width": 600,
+    "height": 360
+  },
+  "cards.giant-corals.close.1200": {
+    "path": "v2/cards/giant-corals-close-1200.8eb3bf10.webp",
+    "bytes": 107332,
+    "sha256": "8eb3bf1090df36d84cee7ad806e186e440608242135b0f776314c81ba212f446",
+    "contentType": "image/webp",
+    "width": 1200,
+    "height": 720
+  },
+  "photos.fkt251206_crew.thumb": {
+    "path": "v2/photos/fkt251206_crew-thumb.21a3abb2.webp",
+    "bytes": 23906,
+    "sha256": "21a3abb24918e5235fedaf0d3a4434d9feaec0b6875b7b37300f54c2f384c33e",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 266
+  },
+  "photos.fkt251206_crew.full": {
+    "path": "v2/photos/fkt251206_crew-full.52c7231a.webp",
+    "bytes": 237904,
+    "sha256": "52c7231a092a2a98eae658eb025e0c1d60dec5b8109e1d7f618b6d848ff8c24b",
+    "contentType": "image/webp",
+    "width": 1600,
+    "height": 1065
+  },
+  "photos.isopods_macro.thumb": {
+    "path": "v2/photos/isopods_macro-thumb.f0b8e9bd.webp",
+    "bytes": 8578,
+    "sha256": "f0b8e9bda8fa4bcef28f31b42b7db57c4f36efff830402e08dbd12422041ea87",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 225
+  },
+  "photos.isopods_macro.full": {
+    "path": "v2/photos/isopods_macro-full.c39fb8a3.webp",
+    "bytes": 107662,
+    "sha256": "c39fb8a3581f45e5aebe9c87e20dabb174760e7e8fdec081f5881ca4e1d7f45d",
+    "contentType": "image/webp",
+    "width": 1600,
+    "height": 900
+  },
+  "photos.labo_vertebra.thumb": {
+    "path": "v2/photos/labo_vertebra-thumb.96c6d54c.webp",
+    "bytes": 42822,
+    "sha256": "96c6d54cccf1d3353bf337572850759feb7e25dfb01a994f420fbd614acb6bab",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 533
+  },
+  "photos.labo_vertebra.full": {
+    "path": "v2/photos/labo_vertebra-full.d9956134.webp",
+    "bytes": 231118,
+    "sha256": "d99561341eb1742f687abe5303a15f5f1ee803ec06a0f9080b910d6ea1581578",
+    "contentType": "image/webp",
+    "width": 960,
+    "height": 1280
+  },
+  "photos.labo_vertebra2.thumb": {
+    "path": "v2/photos/labo_vertebra2-thumb.7af122e4.webp",
+    "bytes": 32872,
+    "sha256": "7af122e4f090b5dfbf82e25f77cbd200d4a63580ee1159182a6fd901a902b974",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 533
+  },
+  "photos.labo_vertebra2.full": {
+    "path": "v2/photos/labo_vertebra2-full.3bad4ea5.webp",
+    "bytes": 133360,
+    "sha256": "3bad4ea5bd56b7a4009d4f3fae13d9d2256c24fdaa1d576ea02159e3717e0093",
+    "contentType": "image/webp",
+    "width": 960,
+    "height": 1280
+  },
+  "photos.labo_vertebra3.thumb": {
+    "path": "v2/photos/labo_vertebra3-thumb.f0603a46.webp",
+    "bytes": 22852,
+    "sha256": "f0603a463b43babc3530534b49a2027116fcc80b779ba10f1778f3969954c6ad",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 300
+  },
+  "photos.labo_vertebra3.full": {
+    "path": "v2/photos/labo_vertebra3-full.309b2ded.webp",
+    "bytes": 411972,
+    "sha256": "309b2ded7139fd041a2c5a17502c560e2fc511f1c83509d108d70425f41bdee1",
+    "contentType": "image/webp",
+    "width": 1600,
+    "height": 1200
+  },
+  "photos.rov_subastian_arms.thumb": {
+    "path": "v2/photos/rov_subastian_arms-thumb.369f32d7.webp",
+    "bytes": 14532,
+    "sha256": "369f32d7edd6b613471fa9041c970b44f82f1262844f69e571080f3110365cf9",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 225
+  },
+  "photos.rov_subastian_arms.full": {
+    "path": "v2/photos/rov_subastian_arms-full.d8fd9cf9.webp",
+    "bytes": 161612,
+    "sha256": "d8fd9cf9dca3684b8f049ff55912db1494d8c066ad9641297c1bca3bf693c343",
+    "contentType": "image/webp",
+    "width": 1600,
+    "height": 900
+  },
+  "photos.whalefall_crinoid_vertebra.thumb": {
+    "path": "v2/photos/whalefall_crinoid_vertebra-thumb.e25ecf15.webp",
+    "bytes": 9618,
+    "sha256": "e25ecf1552120448619b5a018893107e524cfce540fc05b9acacc78f2b0f5118",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 225
+  },
+  "photos.whalefall_crinoid_vertebra.full": {
+    "path": "v2/photos/whalefall_crinoid_vertebra-full.2dfcc161.webp",
+    "bytes": 104234,
+    "sha256": "2dfcc1612b358e5f0dd37608aaae7b82f36674fe520737976dddbc626bedb7c7",
+    "contentType": "image/webp",
+    "width": 1600,
+    "height": 900
+  },
+  "photos.whalefall_sponge_arthropods.thumb": {
+    "path": "v2/photos/whalefall_sponge_arthropods-thumb.5629f134.webp",
+    "bytes": 9658,
+    "sha256": "5629f134ab385bd5dc9873be8b2251333eed3366b5f7fd159947ed4e4562783c",
+    "contentType": "image/webp",
+    "width": 400,
+    "height": 225
+  },
+  "photos.whalefall_sponge_arthropods.full": {
+    "path": "v2/photos/whalefall_sponge_arthropods-full.c379dd49.webp",
+    "bytes": 83494,
+    "sha256": "c379dd49e6287fd380d7290d2df6f19abd1a03f7b02d25f1f3e3af7445f08c63",
+    "contentType": "image/webp",
+    "width": 1600,
+    "height": 900
+  },
+  "brand.logo": {
+    "path": "v2/brand/logo-vidaenextremos.2087829d.webp",
+    "bytes": 11932,
+    "sha256": "2087829d7bd0407e29bcd4040f859261a367f9da6b3899611eeb373d353ec7ed",
+    "contentType": "image/webp",
+    "width": 256,
+    "height": 256
+  }
+}
