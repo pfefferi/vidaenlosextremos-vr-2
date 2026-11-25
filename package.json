@@ -5,11 +5,42 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
     "assets:models": "node scripts/optimize-models.mjs",
     "assets:media": "node scripts/optimize-media.mjs",
     "validate:data": "node scripts/validate-data.mjs"
   },
+  "dependencies": {
+    "@react-three/drei": "^10",
+    "@react-three/fiber": "^9",
+    "@react-three/uikit": "^1",
+    "@react-three/xr": "^6",
+    "i18next": "*",
+    "lucide-react": "*",
+    "meshoptimizer": "*",
+    "nipplejs": "*",
+    "photoswipe": "*",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-i18next": "*",
+    "three": "^0.184",
+    "three-mesh-bvh": "*",
+    "zustand": "^5"
+  },
   "devDependencies": {
-    "sharp": "^0.35.5"
+    "@playwright/test": "*",
+    "@types/react": "*",
+    "@types/react-dom": "*",
+    "@types/three": "*",
+    "@vitejs/plugin-react": "*",
+    "sharp": "^0.35.5",
+    "typescript": "*",
+    "vite": "*",
+    "vitest": "*"
   }
 }
