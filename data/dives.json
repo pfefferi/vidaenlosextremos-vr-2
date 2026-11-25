@@ -1,0 +1,93 @@
+{
+  "whale-fall": {
+    "id": "S0883",
+    "slug": "whale-fall",
+    "titleKey": "habitats.whale_fall",
+    "title": "The Whale Fall",
+    "status": "live",
+    "materialPolicy": "authored",
+    "modelKey": "models.whale-fall",
+    "date": "2025-12-21",
+    "telemetry": {
+      "depth": 3895,
+      "temp": 0.32,
+      "salinity": 34.67,
+      "o2": 262
+    },
+    "spawn": {
+      "position": { "x": -7.34, "y": -1.84, "z": -9.45 },
+      "rotationDeg": { "x": 0, "y": 270, "z": 0 }
+    },
+    "theme": {
+      "floorColor": "#5f6c5c",
+      "fogColor": "#061520",
+      "bgColor": "#040d14"
+    },
+    "cards": {
+      "env600": "cards.whale-fall.env.600",
+      "env1200": "cards.whale-fall.env.1200",
+      "close600": "cards.whale-fall.close.600",
+      "close1200": "cards.whale-fall.close.1200"
+    }
+  },
+  "clam-bed": {
+    "id": "S0889",
+    "slug": "clam-bed",
+    "titleKey": "habitats.clam_bed",
+    "title": "Vesicomyidae Clam Bed",
+    "status": "live",
+    "materialPolicy": "authored",
+    "modelKey": "models.clam-bed",
+    "date": "2026-01-05",
+    "telemetry": {
+      "depth": 618,
+      "temp": 4.15,
+      "salinity": 34.42,
+      "o2": 180
+    },
+    "spawn": {
+      "position": { "x": 6.78, "y": -1.4, "z": -14.16 },
+      "rotationDeg": { "x": 0, "y": 0, "z": 0 }
+    },
+    "theme": {
+      "floorColor": "#183839",
+      "fogColor": "#071b24",
+      "bgColor": "#040f15"
+    },
+    "cards": {
+      "env600": "cards.clam-bed.env.600",
+      "env1200": "cards.clam-bed.env.1200",
+      "close600": "cards.clam-bed.close.600",
+      "close1200": "cards.clam-bed.close.1200"
+    }
+  },
+  "giant-corals": {
+    "id": "S0892",
+    "slug": "giant-corals",
+    "titleKey": "habitats.giant_corals",
+    "title": "Giant Corals (Paragorgia sp.)",
+    "status": "coming_soon",
+    "date": "2026-01-10",
+    "telemetry": {
+      "depth": 483,
+      "temp": 6.2,
+      "salinity": 34.35,
+      "o2": 210
+    },
+    "spawn": {
+      "position": { "x": 5, "y": 5, "z": 5 },
+      "rotationDeg": { "x": 0, "y": 45, "z": 0 }
+    },
+    "theme": {
+      "floorColor": "#1a2a2a",
+      "fogColor": "#06181e",
+      "bgColor": "#030c10"
+    },
+    "cards": {
+      "env600": "cards.giant-corals.env.600",
+      "env1200": "cards.giant-corals.env.1200",
+      "close600": "cards.giant-corals.close.600",
+      "close1200": "cards.giant-corals.close.1200"
+    }
+  }
+}

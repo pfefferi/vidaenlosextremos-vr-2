@@ -1,0 +1,114 @@
+{
+  "menu": {
+    "title": "VIDA EN LOS EXTREMOS",
+    "expedition": "Expedición FKt251206 Bravo | R/V Falkor (too)",
+    "dive_id": "INMERSIÓN",
+    "depth": "PROFUNDIDAD",
+    "launch": "INICIAR INMERSIÓN",
+    "coming_soon": "PRÓXIMAMENTE",
+    "footer": "EST. 2026 | Lisandro Scarrone",
+    "gaming_mode": "MODO MISIÓN",
+    "language": "IDIOMA",
+    "test_model": "MODELO DE PRUEBA"
+  },
+  "credits": {
+    "assets": "Recursos visuales © Schmidt Ocean Institute (FKt251206), adaptados (recortados, redimensionados) y utilizados bajo",
+    "sharealike": ". Este proyecto educativo no comercial se comparte bajo la misma licencia.",
+    "models_title": "Modelos 3D"
+  },
+  "habitats": {
+    "whale_fall": "Whale Fall (Caída de Ballena)",
+    "clam_bed": "Bancos de Almejas Vesicomyidae",
+    "giant_corals": "Lecho de Corales Gigantes",
+    "model_test": "Hábitat de Prueba"
+  },
+  "telemetry": {
+    "site": "SITIO",
+    "id": "ID",
+    "heading": "RUMBO",
+    "depth": "PROFUNDIDAD",
+    "temp": "TEMP",
+    "salinity": "SALINIDAD",
+    "o2": "O₂"
+  },
+  "ui": {
+    "loading": "CARGANDO...",
+    "loading_model": "Cargando modelo 3D...",
+    "loading_progress": "Cargando escena...",
+    "error_load_title": "Error de carga",
+    "error_load_model": "No se pudo cargar el modelo 3D del sitio.",
+    "error_retry": "Reintentar",
+    "error_webgl": "WebGL no está disponible en este dispositivo.",
+    "system_log": "REGISTRO DEL SISTEMA",
+    "scanning_data": "Escaneando datos...",
+    "toggle_hud": "Alternar HUD",
+    "menu": "Menú",
+    "system_navigation": "Navegación del Sistema",
+    "mission_controls": "Controles de Misión",
+    "toggle_gyro": "Alternar Giroscopio",
+    "return_to_home": "Volver al Inicio",
+    "explore": "EXPLORAR",
+    "reset_position": "Restablecer Posición",
+    "speed": "VEL",
+    "zoom": "ZOM",
+    "vertical": "VRT",
+    "mission_analyzed": "MUESTRAS ANALIZADAS",
+    "mission_complete": "¡MISIÓN COMPLETADA!"
+  },
+  "vr": {
+    "enter": "ENTRAR EN VR",
+    "exit": "SALIR DE VR",
+    "preview_3d": "VISTA 3D",
+    "video_unavailable": "Video VR no disponible; mirar en YouTube",
+    "comfort_turn": "Giro cómodo"
+  },
+  "controls": {
+    "title": "CONTROLES DE MISIÓN",
+    "gamepad": "MANDO (GAMEPAD)",
+    "keyboard": "TECLADO",
+    "piloting_nav": "PILOTAJE Y NAVEGACIÓN",
+    "mission_systems": "MISIÓN Y SISTEMAS",
+    "move_strafe": "AVANZAR / DESPLAZAMIENTO LATERAL",
+    "camera_look": "VISTA DE CÁMARA",
+    "ascend_descend": "ASCENDER / DESCENDER",
+    "zoom_in_out": "ACERCAR / ALEJAR ZOOM",
+    "speed_inc_dec": "VELOCIDAD +/−",
+    "scan_waypoint": "ESCANEAR PUNTO DE INTERÉS",
+    "open_menu": "ABRIR MENÚ",
+    "close": "CERRAR",
+    "switch_input": "CAMBIAR ENTRADA"
+  },
+  "waypoints": {
+    "whale_fall": {
+      "vertebra": {
+        "title": "La Vértebra de Ballena",
+        "description": "Cuando una ballena muere y se hunde, su esqueleto se convierte en una fuente de nutrientes que sustenta la vida de las profundidades durante décadas. Esta vértebra fue hallada a 3.895 m de profundidad, durante una etapa tardía de sucesión ecológica. El hueso se está mineralizando lentamente de vuelta al lecho marino, y su superficie dura proporciona un punto de anclaje para corales y otros organismos sésiles en un entorno dominado por sedimentos blandos.",
+        "caption": "Clip: Momento de la extracción - R/V Falkor (too)"
+      },
+      "fauna": {
+        "title": "Fauna del Whale Fall",
+        "description": "Un whale fall se convierte en un oasis en el fondo marino. A medida que el esqueleto se recicla lentamente, es colonizado por una sucesión de organismos que encuentran refugio y alimento en los huesos expuestos: los crinoideos (estrellas plumosas) se anclan a las vértebras, los pequeños isópodos forman trenes a lo largo del hueso, y las esponjas pedunculadas filtran el agua circundante.",
+        "caption": "El trencito de isópodos — macrofotografía in situ",
+        "caption2": "Un crinoideo (estrella plumosa) anclado a la vértebra de ballena",
+        "caption3": "Una esponja pedunculada colonizada por pequeños artrópodos"
+      },
+      "subastian": {
+        "title": "ROV SuBastian",
+        "description": "SuBastian es el ROV utilizado para explorar y muestrear estos sitios. El modelo 3D que estás navegando es un gemelo digital construido mediante fotogrametría — miles de imágenes de alta resolución procesadas bajo la dirección del piloto Ben Erwin. Los brazos robóticos de SuBastian permiten la recolección precisa de muestras biológicas frágiles con mínima perturbación del ecosistema circundante.",
+        "caption": "Los brazos manipuladores de SuBastian en acción en el fondo marino"
+      },
+      "lab": {
+        "title": "Del Lecho Marino al Laboratorio",
+        "description": "Una vez que una muestra llega a la superficie, se traslada de inmediato a la Sala Fría. Un equipo multidisciplinario gestiona la recuperación y el análisis; los equipos de Ecología y Taxonomía Bentónica luego trabajan para identificar especies y estudiar la biodiversidad de las profundidades, manteniendo todo en almacenamiento en frío a +2 °C.",
+        "thumb1": "José Isola y Daniel Lauretta manipulando la vértebra tras la recuperación.",
+        "thumb2": "Detalle de la vértebra de ballena.",
+        "thumb3": "Detalle de la estructura ósea en el laboratorio."
+      },
+      "mission": {
+        "title": "Expedición FKt251206",
+        "description": "La campaña liderada por Maria Emilia Bravo tuvo como objetivo describir y clasificar la amplia diversidad de paisajes y ecosistemas bentónicos del mar profundo argentino. Esto incluyó la identificación de áreas prioritarias para futuras investigaciones y la toma de acciones de manejo ambiental.",
+        "caption": "El equipo científico y la tripulación de la expedición FKt251206 a bordo del R/V Falkor (too). Foto: Vallejo Prut / Schmidt Ocean Institute"
+      }
+    }
+  }
+}
