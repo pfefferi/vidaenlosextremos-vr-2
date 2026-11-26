@@ -64,8 +64,6 @@ export function RovRig({
   const resetTrigger = useRovStore((s) => s.resetTrigger);
 
   const xrOriginRef = useRef<THREE.Group>(null);
-  const headlampRef = useRef<THREE.SpotLight>(null);
-  const headlampTarget = useMemo(() => new THREE.Object3D(), []);
 
   const kinematicsRef = useRef<RovKinematicsState>(createSpawnKinematics(dive));
   const qaOverrideRef = useRef<QaCameraOverride | null>(null);
@@ -81,8 +79,6 @@ export function RovRig({
 
   // Pre-allocated scratch math objects (zero allocations inside useFrame)
   const tmpPos = useMemo(() => new THREE.Vector3(), []);
-  const tmpCamWorldPos = useMemo(() => new THREE.Vector3(), []);
-  const tmpCamWorldDir = useMemo(() => new THREE.Vector3(), []);
 
   // Keep PerspectiveCamera near/far/fov synchronized (outside XR)
   useEffect(() => {
@@ -432,33 +428,9 @@ export function RovRig({
         });
       }
     }
-
-    // Aim ROV headlamp from live camera world pose
-    if (headlampRef.current) {
-      camera.getWorldPosition(tmpCamWorldPos);
-      camera.getWorldDirection(tmpCamWorldDir);
-      headlampRef.current.position.copy(tmpCamWorldPos);
-      headlampTarget.position.copy(tmpCamWorldPos).addScaledVector(tmpCamWorldDir, 8);
-      headlampTarget.updateMatrixWorld();
-    }
   });
 
-  return (
-    <>
-      <XROrigin ref={xrOriginRef}>{children}</XROrigin>
-      <primitive object={headlampTarget} />
-      <spotLight
-        ref={headlampRef}
-        target={headlampTarget}
-        color="#e2f4ff"
-        intensity={18}
-        distance={30}
-        angle={0.58}
-        penumbra={0.65}
-        decay={1.4}
-      />
-    </>
-  );
+  return <XROrigin ref={xrOriginRef}>{children}</XROrigin>;
 }
 
 export default RovRig;

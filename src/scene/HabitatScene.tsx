@@ -94,7 +94,7 @@ class HabitatErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 }
 
 const DEFAULT_FLOOR_Y = -5;
-const DEFAULT_MOVE_SPEED = 12;
+const DEFAULT_MOVE_SPEED = 2.4;
 
 export function HabitatScene({ dive, vrUiSlot }: HabitatSceneProps) {
   const [terrainInfo, setTerrainInfo] = useState<{
