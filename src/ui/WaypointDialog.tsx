@@ -12,8 +12,6 @@ export function WaypointDialog() {
   const activeDiveSlug = useRovStore((s) => s.activeDiveSlug);
   const waypointsBySite = useRovStore((s) => s.waypointsBySite);
   const openModalWaypointId = useRovStore((s) => s.openModalWaypointId);
-  const language = useRovStore((s) => s.language);
-  const setLanguage = useRovStore((s) => s.setLanguage);
   const closeWaypointModal = useRovStore((s) => s.closeWaypointModal);
 
   const dialogRef = useRef<HTMLDialogElement | null>(null);
@@ -134,40 +132,15 @@ export function WaypointDialog() {
             <h2 id="wp-dialog-title" className="modal-title">
               {t(activeWaypoint.titleKey)}
             </h2>
-            <div className="modal-header-actions">
-              <div
-                className="lang-selector modal-lang-selector"
-                role="group"
-                aria-label={t('menu.language')}
-                data-testid="dialog-lang-toggle"
-              >
-                <button
-                  type="button"
-                  className={`lang-btn${language === 'es' ? ' active' : ''}`}
-                  aria-pressed={language === 'es'}
-                  onClick={() => setLanguage('es')}
-                >
-                  ES
-                </button>
-                <button
-                  type="button"
-                  className={`lang-btn${language === 'en' ? ' active' : ''}`}
-                  aria-pressed={language === 'en'}
-                  onClick={() => setLanguage('en')}
-                >
-                  EN
-                </button>
-              </div>
-              <button
-                type="button"
-                className="modal-close-btn"
-                onClick={closeWaypointModal}
-                aria-label={t('controls.close')}
-                data-testid="btn-close-waypoint"
-              >
-                <X size={20} aria-hidden="true" />
-              </button>
-            </div>
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={closeWaypointModal}
+              aria-label={t('controls.close')}
+              data-testid="btn-close-waypoint"
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
           </header>
 
           <div className="modal-body">

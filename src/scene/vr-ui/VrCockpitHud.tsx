@@ -122,8 +122,6 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
   const activeDiveSlug = useRovStore((s) => s.activeDiveSlug);
   const dives = useRovStore((s) => s.dives);
   const waypointsBySite = useRovStore((s) => s.waypointsBySite);
-  const language = useRovStore((s) => s.language);
-  const setLanguage = useRovStore((s) => s.setLanguage);
   const gamifiedMode = useRovStore((s) => s.gamifiedMode);
   const speedIndex = useRovStore((s) => s.speedIndex);
   const stepSpeedIndex = useRovStore((s) => s.stepSpeedIndex);
@@ -279,11 +277,6 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
             onPress={() => setComfortSnapTurn(!comfortSnapTurn)}
           />
           <HudButton label={t('ui.reset_position')} onPress={triggerReset} />
-          <HudButton
-            label={language === 'es' ? 'ES | en' : 'es | EN'}
-            active
-            onPress={() => setLanguage(language === 'es' ? 'en' : 'es')}
-          />
         </Container>
 
         <Container flexDirection="row" alignItems="center" gap={6}>
