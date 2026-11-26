@@ -259,13 +259,9 @@ test('2-4. Whale Fall (S0883) v1 HUD, 3-angle QA, Waypoint + PhotoSwipe + ES/EN,
 
   const dialog = page.getByTestId('waypoint-dialog');
   await expect(dialog).toHaveAttribute('open', '');
+  await expect(dialog.getByTestId('dialog-lang-toggle')).toHaveCount(0);
   await expect(dialog.locator('#wp-dialog-title')).toContainText('Del Lecho Marino al Laboratorio');
   await expect(dialog.locator('.wp-dialog__description')).toContainText('Sala Fría');
-
-  // Switch live ES -> EN inside WaypointDialog
-  await page.getByTestId('dialog-lang-toggle').getByRole('button', { name: 'EN' }).click();
-  await expect(dialog.locator('#wp-dialog-title')).toContainText('From Seafloor to Lab');
-  await expect(dialog.locator('.wp-dialog__description')).toContainText('Cold Room');
 
   // Verify gallery thumbnails load cleanly
   const galleryImgs = page.locator('[data-testid="waypoint-gallery"] img');
@@ -304,6 +300,23 @@ test('2-4. Whale Fall (S0883) v1 HUD, 3-angle QA, Waypoint + PhotoSwipe + ES/EN,
   await pswpRoot.locator('.pswp__button--close').click();
   await expect(pswpRoot).toBeHidden();
   await expect(dialog).toHaveAttribute('open', '');
+  await page.getByTestId('btn-close-waypoint').click();
+  await expect(dialog).not.toHaveAttribute('open', '');
+
+  // Open SystemMenu, switch live ES -> EN, verify SystemMenu translations, then reopen waypoint in EN
+  await page.getByTestId('btn-system-menu').click();
+  const systemMenu = page.locator('#system-menu');
+  await expect(systemMenu).toBeVisible();
+  await systemMenu.getByTestId('sys-lang-en').click();
+  await expect(systemMenu.getByTestId('btn-open-controls-guide')).toContainText('Mission Controls');
+  await expect(systemMenu.getByTestId('btn-return-home')).toContainText('Return to Home');
+  await page.getByTestId('btn-close-system-menu').click();
+  await expect(systemMenu).toHaveCount(0);
+
+  await exploreBtn.click();
+  await expect(dialog).toHaveAttribute('open', '');
+  await expect(dialog.locator('#wp-dialog-title')).toContainText('From Seafloor to Lab');
+  await expect(dialog.locator('.wp-dialog__description')).toContainText('Cold Room');
   await page.getByTestId('btn-close-waypoint').click();
   await expect(dialog).not.toHaveAttribute('open', '');
 

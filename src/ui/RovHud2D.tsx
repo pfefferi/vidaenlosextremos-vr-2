@@ -9,7 +9,6 @@ import {
   Eye,
   EyeOff,
   Glasses,
-  Home,
   Menu,
   Minus,
   Plus,
@@ -360,7 +359,7 @@ export function RovHud2D() {
                   onClick={triggerReset}
                   data-testid="btn-reset-pos"
                 >
-                  <Home size={22} aria-hidden="true" />
+                  <RotateCcw size={22} aria-hidden="true" />
                 </button>
               </div>
 
