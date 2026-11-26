@@ -205,6 +205,13 @@ export function RovRig({
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      const s = useRovStore.getState();
+      if (s.controlsGuideOpen || s.openModalWaypointId !== null) {
+        return;
+      }
+      if (s.systemMenuOpen && e.code === 'Escape') {
+        return;
+      }
       const handled = rovInputBus.handleKeyDown(e);
       if (
         handled &&
@@ -328,8 +335,12 @@ export function RovRig({
       snapTurnLockedRef.current = false;
     }
 
-    // Discrete menu toggle (blocked when a waypoint modal is open)
-    if ((busFrame.menuPressed || xrMenuPressed) && store.openModalWaypointId === null) {
+    // Discrete menu toggle (blocked when a waypoint modal or controls guide is open)
+    if (
+      (busFrame.menuPressed || xrMenuPressed) &&
+      store.openModalWaypointId === null &&
+      !store.controlsGuideOpen
+    ) {
       store.setSystemMenuOpen(!store.systemMenuOpen);
     }
 
