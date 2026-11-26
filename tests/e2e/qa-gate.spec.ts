@@ -295,6 +295,8 @@ test('2-4. Whale Fall (S0883) v1 HUD, 3-angle QA, Waypoint + PhotoSwipe + ES/EN,
   await expect(pswpRoot).toBeVisible();
   await expect(pswpRoot).toHaveClass(/pswp--ui-visible/);
   await expect(pswpRoot.locator('.pswp__img').first()).toBeVisible();
+  // Allow PhotoSwipe's 333ms opening animation to complete before clicking close
+  await page.waitForTimeout(450);
 
   // Close PhotoSwipe then close WaypointDialog
   await pswpRoot.locator('.pswp__button--close').click();

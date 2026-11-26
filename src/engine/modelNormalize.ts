@@ -33,7 +33,7 @@ export function computeModelNormalization(root: THREE.Object3D): ModelTransformS
       position: { x: 0, y: -2, z: -10 },
       floorY: -2,
       rawMaxDim: 1,
-      baseMoveSpeedPerSec: 60 * 10 * (0.02 + Math.log10(2) * 0.03),
+      baseMoveSpeedPerSec: 60 * (0.02 + Math.log10(2) * 0.03),
       triangleCount: 0,
       vertexCount: 0,
       doubleSidedCount: 0,
@@ -51,7 +51,7 @@ export function computeModelNormalization(root: THREE.Object3D): ModelTransformS
     z: -_center.z * scale - 10,
   };
   const floorY = position.y - (_size.y * scale) / 2;
-  const baseMoveSpeedPerSec = 60 * 10 * (0.02 + Math.log10(rawMaxDim + 1) * 0.03);
+  const baseMoveSpeedPerSec = 60 * (0.02 + Math.log10(rawMaxDim + 1) * 0.03);
 
   let triangleCount = 0;
   let vertexCount = 0;

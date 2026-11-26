@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import * as THREE from 'three';
+import { computeModelNormalization } from '@/engine/modelNormalize';
 import {
   DEFAULT_SPEED_INDEX,
   MAX_PITCH_RAD,
@@ -118,5 +120,20 @@ describe('rovPhysics', () => {
     expect(normal.position.z).toBeLessThan(0);
     expect(turbo.position.z / normal.position.z).toBeCloseTo(1.5, 5);
     expect(zoomed.position.z / normal.position.z).toBeCloseTo(0.5, 5);
+  });
+
+  it('computes calm underwater baseMoveSpeedPerSec between 1 and 6 m/s for a 20-unit mesh', () => {
+    const geom = new THREE.BoxGeometry(20, 8, 12);
+    const mat = new THREE.MeshStandardMaterial();
+    const mesh = new THREE.Mesh(geom, mat);
+
+    const summary = computeModelNormalization(mesh);
+
+    expect(summary.rawMaxDim).toBeCloseTo(20, 5);
+    expect(summary.baseMoveSpeedPerSec).toBeGreaterThanOrEqual(1);
+    expect(summary.baseMoveSpeedPerSec).toBeLessThanOrEqual(6);
+
+    geom.dispose();
+    mat.dispose();
   });
 });

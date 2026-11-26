@@ -39,7 +39,7 @@ declare global {
 }
 
 const DEFAULT_EMPTY_FLOOR_Y = -5;
-const DEFAULT_EMPTY_MOVE_SPEED = 12;
+const DEFAULT_EMPTY_MOVE_SPEED = 2.4;
 
 function disposeTexture(tex: unknown): void {
   if (!tex || typeof tex !== 'object') return;
