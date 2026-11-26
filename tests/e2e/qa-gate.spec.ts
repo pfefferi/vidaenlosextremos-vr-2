@@ -68,7 +68,11 @@ async function waitForDiveReady(page: Page, minTriangles: number): Promise<void>
 
   await page.waitForFunction(
     (minTris) => {
-      const qa = (window as Window & { __ROV_QA__?: { getSceneStats?: () => { triangleCount: number } | null } }).__ROV_QA__;
+      const qa = (
+        window as Window & {
+          __ROV_QA__?: { getSceneStats?: () => { triangleCount: number } | null };
+        }
+      ).__ROV_QA__;
       const stats = qa?.getSceneStats?.();
       return Boolean(stats && stats.triangleCount > minTris);
     },
@@ -115,7 +119,7 @@ test.beforeAll(() => {
   fs.mkdirSync(QA_DIR, { recursive: true });
 });
 
-test('1. Menu initial load & < 1.5 MB transfer budget', async ({ page }) => {
+test('1. Menu v1 parity, DeepSeaBEE credits, & < 1.5 MB transfer budget', async ({ page }) => {
   const tracker = attachErrorTracker(page);
 
   const cdp = await page.context().newCDPSession(page);
@@ -133,10 +137,26 @@ test('1. Menu initial load & < 1.5 MB transfer budget', async ({ page }) => {
   await expect(page.getByTestId('dive-card-giant-corals')).toBeVisible();
   await expect(page.getByTestId('launch-giant-corals')).toBeDisabled();
 
+  // Verify DeepSeaBEE Sketchfab credits are preserved inside footer <details class="credits-models">
+  const creditsDetails = page.locator('details.credits-models');
+  await expect(creditsDetails).toBeAttached();
+  await creditsDetails.locator('summary').click();
+  await expect(creditsDetails).toContainText('DeepSeaBEE');
+  await expect(
+    creditsDetails.locator('a[href="https://sketchfab.com/3d-models/wf-2639e4d3e6a14db1ba6fbe65c2f92481"]')
+  ).toBeVisible();
+  await expect(
+    creditsDetails.locator(
+      'a[href="https://sketchfab.com/3d-models/fkt-clam-bed-partial-survey-render-d55a372d074a45b99c03e46d7c70aae5"]'
+    )
+  ).toBeVisible();
+  await creditsDetails.locator('summary').click();
+
   const imageCheck = await page.evaluate(async () => {
-    const imgs = Array.from(document.querySelectorAll('img'));
+    const envImgs = Array.from(document.querySelectorAll<HTMLImageElement>('.card-img.img-env'));
+    const closeImgs = Array.from(document.querySelectorAll<HTMLImageElement>('.card-img.img-closeup'));
     await Promise.all(
-      imgs.map((img) =>
+      envImgs.map((img) =>
         img.complete
           ? Promise.resolve()
           : new Promise<void>((res) => {
@@ -145,18 +165,18 @@ test('1. Menu initial load & < 1.5 MB transfer budget', async ({ page }) => {
             })
       )
     );
-    const logo = document.querySelector<HTMLImageElement>('.mission-menu__logo');
-    const cards = Array.from(document.querySelectorAll<HTMLImageElement>('.dive-card__image'));
     return {
-      logoWidth: logo?.naturalWidth ?? 0,
-      cardCount: cards.length,
-      brokenCards: cards.filter((img) => img.naturalWidth <= 0).length,
+      envCount: envImgs.length,
+      closeCount: closeImgs.length,
+      brokenEnv: envImgs.filter((img) => img.naturalWidth <= 0).length,
     };
   });
 
-  expect(imageCheck.logoWidth).toBeGreaterThan(0);
-  expect(imageCheck.cardCount).toBe(3);
-  expect(imageCheck.brokenCards).toBe(0);
+  expect(imageCheck.envCount).toBe(3);
+  expect(imageCheck.closeCount).toBe(3);
+  expect(imageCheck.brokenEnv).toBe(0);
+
+  await page.screenshot({ path: path.join(QA_DIR, 'menu-v1-restored.png') });
 
   // Give CDP loadingFinished events a moment to flush
   await page.waitForTimeout(200);
@@ -167,7 +187,7 @@ test('1. Menu initial load & < 1.5 MB transfer budget', async ({ page }) => {
   assertNoErrors(tracker, 'Menu initial load');
 });
 
-test('2-4. Whale Fall (S0883) 3-angle QA, Waypoint + PhotoSwipe + ES/EN, & 3D Preview', async ({
+test('2-4. Whale Fall (S0883) v1 HUD, 3-angle QA, Waypoint + PhotoSwipe + ES/EN, & 3D Preview', async ({
   page,
 }) => {
   const tracker = attachErrorTracker(page);
@@ -194,6 +214,21 @@ test('2-4. Whale Fall (S0883) 3-angle QA, Waypoint + PhotoSwipe + ES/EN, & 3D Pr
   expect(stats).not.toBeNull();
   expect(stats!.triangleCount).toBeGreaterThan(100_000);
   expect(stats!.doubleSidedCount).toBe(4);
+
+  // Verify bare white YouTube-style #telemetry-block (zero box/border) + v1 circular controls
+  const telemetryStyle = await page.locator('#telemetry-block').evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      backgroundColor: cs.backgroundColor,
+      borderTopWidth: cs.borderTopWidth,
+    };
+  });
+  expect(telemetryStyle.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  expect(telemetryStyle.borderTopWidth).toBe('0px');
+
+  await expect(page.locator('#move-up')).toBeVisible();
+  await expect(page.locator('#hud-watermark')).toBeVisible();
+  await expect(page.getByTestId('hud-speed-value')).toBeVisible();
 
   // Spawn shot
   await page.screenshot({ path: path.join(QA_DIR, 'whale-fall-spawn.png') });
@@ -255,6 +290,9 @@ test('2-4. Whale Fall (S0883) 3-angle QA, Waypoint + PhotoSwipe + ES/EN, & 3D Pr
   });
   expect(loadedThumbs).toBe(3);
 
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: path.join(QA_DIR, 'whale-fall-modal.png') });
+
   // Open PhotoSwipe by clicking first gallery thumbnail
   await page.locator('[data-testid="waypoint-gallery"] a[data-pswp-width]').first().click();
   const pswpRoot = page.locator('.pswp');
@@ -273,7 +311,9 @@ test('2-4. Whale Fall (S0883) 3-angle QA, Waypoint + PhotoSwipe + ES/EN, & 3D Pr
   await page.getByTestId('btn-reset-pos').click();
   await waitAnimationFrames(page, 3);
 
-  // 3D Spatial UI Preview toggle
+  // Open System Menu and activate 3D Spatial UI Preview
+  await page.getByTestId('btn-system-menu').click();
+  await expect(page.getByTestId('system-menu')).toBeVisible();
   await page.getByTestId('btn-preview-3d').click();
   await expect(page.getByTestId('rov-hud-2d')).toHaveCount(0);
   await expect(page.getByTestId('btn-exit-preview-3d')).toBeVisible();

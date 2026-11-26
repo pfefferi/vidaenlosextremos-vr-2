@@ -1,30 +1,66 @@
 import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
   Box,
-  Compass,
+  ChevronsDown,
+  ChevronsUp,
   Eye,
   EyeOff,
   Glasses,
+  Home,
   Menu,
   Minus,
   Plus,
   RotateCcw,
-  Sparkles,
+  ScanEye,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { type PointerEvent as ReactPointerEvent, useEffect, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
+import { resolveAssetUrl } from '../engine/assetUrl';
+import { rovInputBus, type UiHoldControl } from '../engine/inputBus';
 import { SPEED_LEVELS, formatSpeedLevel } from '../engine/rovPhysics';
 import { useRovStore } from '../store/rovStore';
 import { xrStore } from '../store/xrStore';
 
 function formatHeading(deg: number): string {
   const normalized = Math.round(((deg % 360) + 360) % 360);
-  return `${String(normalized).padStart(3, '0')}°`;
+  return String(normalized).padStart(3, '0');
 }
 
 function formatLoadingPercent(progress: number): number {
   if (!Number.isFinite(progress) || progress <= 0) return 0;
   const scaled = progress < 1 ? progress * 100 : progress;
   return Math.min(100, Math.max(0, Math.round(scaled)));
+}
+
+function bindHoldControl(control: UiHoldControl) {
+  const release = (e: ReactPointerEvent<HTMLButtonElement>) => {
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    rovInputBus.setUiHold(control, false);
+  };
+
+  return {
+    onPointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      rovInputBus.setUiHold(control, true);
+    },
+    onPointerUp: release,
+    onPointerCancel: release,
+    onLostPointerCapture: () => {
+      rovInputBus.setUiHold(control, false);
+    },
+    onContextMenu: (e: ReactPointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+    },
+  };
 }
 
 export function RovHud2D() {
@@ -34,18 +70,15 @@ export function RovHud2D() {
   const activeDiveSlug = useRovStore((s) => s.activeDiveSlug);
   const dives = useRovStore((s) => s.dives);
   const waypointsBySite = useRovStore((s) => s.waypointsBySite);
-  const language = useRovStore((s) => s.language);
   const hudMode = useRovStore((s) => s.hudMode);
   const gamifiedMode = useRovStore((s) => s.gamifiedMode);
   const speedIndex = useRovStore((s) => s.speedIndex);
-  const fov = useRovStore((s) => s.fov);
   const preview3d = useRovStore((s) => s.preview3d);
   const activeWaypointId = useRovStore((s) => s.activeWaypointId);
   const visitedWaypointIds = useRovStore((s) => s.visitedWaypointIds);
   const loadingState = useRovStore((s) => s.loadingState);
   const telemetryLive = useRovStore((s) => s.telemetryLive);
 
-  const setLanguage = useRovStore((s) => s.setLanguage);
   const cycleHudMode = useRovStore((s) => s.cycleHudMode);
   const stepSpeedIndex = useRovStore((s) => s.stepSpeedIndex);
   const setPreview3d = useRovStore((s) => s.setPreview3d);
@@ -61,7 +94,7 @@ export function RovHud2D() {
     () => false
   );
 
-  const [vrSupported, setVrSupported] = useState(false);
+  const [xrSupported, setXrSupported] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,16 +102,22 @@ export function RovHud2D() {
       navigator.xr
         .isSessionSupported('immersive-vr')
         .then((supported) => {
-          if (!cancelled) setVrSupported(supported);
+          if (!cancelled) setXrSupported(supported);
         })
         .catch(() => {
-          if (!cancelled) setVrSupported(false);
+          if (!cancelled) setXrSupported(false);
         });
     }
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      rovInputBus.clearUiHolds();
+    };
+  }, [hudMode, preview3d, view]);
 
   if (view !== 'dive') {
     return null;
@@ -93,241 +132,315 @@ export function RovHud2D() {
 
   const speedValue = SPEED_LEVELS[speedIndex] ?? SPEED_LEVELS[7];
   const loadingPct = formatLoadingPercent(loadingState.progress);
+  const logoUrl = resolveAssetUrl('brand.logo');
 
   if (isInXrSession || preview3d) {
     return (
-      <>
-        <div className="rov-hud__xr-exit">
-          {isInXrSession ? (
-            <button
-              type="button"
-              className="hud-btn hud-btn--vr"
-              onClick={() => {
-                void xrStore.getState().session?.end();
-              }}
-              data-testid="btn-exit-vr"
-            >
-              <Glasses size={16} aria-hidden="true" />
-              <span>{t('vr.exit')}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="hud-btn hud-btn--accent"
-              onClick={() => setPreview3d(false)}
-              data-testid="btn-exit-preview-3d"
-            >
-              <Box size={16} aria-hidden="true" />
-              <span>
-                {t('vr.exit')} {t('vr.preview_3d')}
-              </span>
-            </button>
-          )}
-        </div>
-      </>
+      <div className="rov-hud__xr-exit">
+        {isInXrSession ? (
+          <button
+            type="button"
+            className="hud-exit-btn"
+            onClick={() => {
+              void xrStore.getState().session?.end();
+            }}
+            data-testid="btn-exit-vr"
+          >
+            <Glasses size={16} aria-hidden="true" />
+            <span>{t('vr.exit')}</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="hud-exit-btn"
+            onClick={() => setPreview3d(false)}
+            data-testid="btn-exit-preview-3d"
+          >
+            <Box size={16} aria-hidden="true" />
+            <span>
+              {t('vr.exit')} {t('vr.preview_3d')}
+            </span>
+          </button>
+        )}
+      </div>
     );
   }
 
+  const isHudVisible = hudMode !== 'hidden';
+  const showControls = hudMode === 'full';
+
   return (
     <>
-      <div className="rov-hud" data-testid="rov-hud-2d" data-hud-mode={hudMode}>
-        <div className="rov-hud__top">
-          {hudMode !== 'hidden' ? (
-            <aside
-              className={`rov-hud__telemetry${
-                hudMode === 'minimal' ? ' rov-hud__telemetry--minimal' : ''
-              }`}
-              aria-label={t('telemetry.site')}
-              data-testid="hud-telemetry"
-            >
-              <dl className="rov-hud__telemetry-grid">
-                <div className="rov-hud__telemetry-item rov-hud__telemetry-item--wide rov-hud__telemetry-item--highlight">
-                  <dt>{t('telemetry.site')}</dt>
-                  <dd>{activeDive ? t(activeDive.titleKey) : activeDiveSlug ?? '—'}</dd>
-                </div>
-                <div className="rov-hud__telemetry-item">
-                  <dt>{t('telemetry.id')}</dt>
-                  <dd>{activeDive?.id ?? '—'}</dd>
-                </div>
-                <div className="rov-hud__telemetry-item">
-                  <dt>{t('telemetry.heading')}</dt>
-                  <dd>{formatHeading(telemetryLive.headingDeg)}</dd>
-                </div>
-                <div className="rov-hud__telemetry-item">
-                  <dt>{t('telemetry.depth')}</dt>
-                  <dd>{telemetryLive.depthMeters.toFixed(1)} m</dd>
-                </div>
-                {activeDive ? (
-                  <>
-                    <div className="rov-hud__telemetry-item">
-                      <dt>{t('telemetry.temp')}</dt>
-                      <dd>{activeDive.telemetry.temp.toFixed(2)} °C</dd>
-                    </div>
-                    <div className="rov-hud__telemetry-item">
-                      <dt>{t('telemetry.salinity')}</dt>
-                      <dd>{activeDive.telemetry.salinity.toFixed(2)} PSU</dd>
-                    </div>
-                    <div className="rov-hud__telemetry-item">
-                      <dt>{t('telemetry.o2')}</dt>
-                      <dd>{activeDive.telemetry.o2} µmol/kg</dd>
-                    </div>
-                  </>
+      <div id="ui-layer" data-testid="rov-hud-2d" data-hud-mode={hudMode}>
+        {isHudVisible ? (
+          <>
+            <div id="telemetry-block" className="telemetry-grid" data-testid="hud-telemetry">
+              <div className="telemetry-row">
+                <span className="telemetry-label">SITE</span>
+                <span className="telemetry-value">
+                  {activeDive ? t(activeDive.titleKey) : activeDiveSlug ?? 'LOADING...'}
+                </span>
+              </div>
+              <div className="telemetry-row">
+                <span className="telemetry-label">ID</span>
+                <span className="telemetry-value">{activeDive?.id ?? '...'}</span>
+              </div>
+              <div className="telemetry-row">
+                <span className="telemetry-label">HEADING</span>
+                <span className="telemetry-value">{formatHeading(telemetryLive.headingDeg)} °</span>
+              </div>
+              <div className="telemetry-row">
+                <span className="telemetry-label">DEPTH</span>
+                <span className="telemetry-value">{Math.round(telemetryLive.depthMeters)} M</span>
+              </div>
+              <div className="telemetry-row">
+                <span className="telemetry-label">TEMP.</span>
+                <span className="telemetry-value">
+                  {activeDive ? activeDive.telemetry.temp.toFixed(2) : '0.00'} °C
+                </span>
+              </div>
+              <div className="telemetry-row">
+                <span className="telemetry-label">SALINITY</span>
+                <span className="telemetry-value">
+                  {activeDive ? activeDive.telemetry.salinity.toFixed(2) : '00.00'} PSU
+                </span>
+              </div>
+              <div className="telemetry-row">
+                <span className="telemetry-label">O2 CON</span>
+                <span className="telemetry-value">
+                  {activeDive ? activeDive.telemetry.o2 : '000'} µM
+                </span>
+              </div>
+            </div>
+
+            <div id="date-block">
+              {activeDive ? `${activeDive.date} UTC` : '--/--/--'}
+            </div>
+            <div id="coords-block">
+              {`X: ${telemetryLive.x.toFixed(2)}  Y: ${telemetryLive.y.toFixed(2)}  Z: ${telemetryLive.z.toFixed(2)}`}
+            </div>
+
+            <img
+              id="hud-watermark"
+              src={logoUrl}
+              alt=""
+              aria-hidden="true"
+              width={48}
+              height={48}
+            />
+          </>
+        ) : null}
+
+        <div className="top-left-ctrls">
+          <button
+            type="button"
+            id="hud-toggle"
+            className="icon-btn"
+            title={t('ui.toggle_hud')}
+            aria-label={t('ui.toggle_hud')}
+            onClick={cycleHudMode}
+            data-testid="btn-toggle-hud"
+          >
+            {isHudVisible ? <Eye size={22} aria-hidden="true" /> : <EyeOff size={22} aria-hidden="true" />}
+          </button>
+        </div>
+
+        {isHudVisible ? (
+          <div className="top-right-ctrls">
+            {gamifiedMode && siteWaypoints.length > 0 ? (
+              <div id="mission-counter" data-testid="mission-counter">
+                <span>{t('ui.mission_analyzed')}: </span>
+                <span>{analyzedCount}</span> / <span>{siteWaypoints.length}</span>
+                {isMissionComplete ? (
+                  <span className="mission-complete-inline" data-testid="mission-complete-badge">
+                    {' '}
+                    · {t('ui.mission_complete')}
+                  </span>
                 ) : null}
-              </dl>
-            </aside>
-          ) : (
-            <div />
-          )}
+              </div>
+            ) : null}
 
-          <div className="rov-hud__actions">
-            {hudMode !== 'hidden' ? (
-              <>
-                <div className="hud-pill hud-pill--mission" data-testid="mission-counter">
-                  <Compass size={15} aria-hidden="true" />
-                  <span>{t('ui.mission_analyzed')}:</span>
-                  <strong>
-                    {analyzedCount}/{siteWaypoints.length}
-                  </strong>
-                  {isMissionComplete ? (
-                    <span className="hud-badge-complete" data-testid="mission-complete-badge">
-                      {t('ui.mission_complete')}
-                    </span>
-                  ) : null}
-                </div>
-
-                <button
-                  type="button"
-                  className="hud-btn"
-                  onClick={cycleHudMode}
-                  aria-label={t('ui.toggle_hud')}
-                  title={t('ui.toggle_hud')}
-                  data-testid="btn-toggle-hud"
-                >
-                  <EyeOff size={15} aria-hidden="true" />
-                  <span>{t('ui.toggle_hud')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="hud-btn hud-btn--accent"
-                  onClick={() => setPreview3d(true)}
-                  data-testid="btn-preview-3d"
-                >
-                  <Box size={15} aria-hidden="true" />
-                  <span>{t('vr.preview_3d')}</span>
-                </button>
-
-                {vrSupported ? (
-                  <button
-                    type="button"
-                    className="hud-btn hud-btn--vr"
-                    onClick={() => {
-                      void xrStore.enterVR();
-                    }}
-                    data-testid="btn-enter-vr"
-                  >
-                    <Glasses size={15} aria-hidden="true" />
-                    <span>{t('vr.enter')}</span>
-                  </button>
-                ) : null}
-              </>
-            ) : (
+            {xrSupported ? (
               <button
                 type="button"
-                className="hud-btn"
-                onClick={cycleHudMode}
-                aria-label={t('ui.toggle_hud')}
-                title={t('ui.toggle_hud')}
-                data-testid="btn-toggle-hud"
+                className="icon-btn"
+                title={t('vr.enter')}
+                aria-label={t('vr.enter')}
+                onClick={() => {
+                  void xrStore.enterVR();
+                }}
+                data-testid="btn-enter-vr"
               >
-                <Eye size={15} aria-hidden="true" />
-                <span>{t('ui.toggle_hud')}</span>
+                <Glasses size={22} aria-hidden="true" />
               </button>
-            )}
+            ) : null}
 
             <button
               type="button"
-              className="hud-btn"
+              id="menu-toggle"
+              className="icon-btn"
+              title={t('ui.menu')}
+              aria-label={t('ui.menu')}
               onClick={() => setSystemMenuOpen(true)}
               data-testid="btn-system-menu"
             >
-              <Menu size={15} aria-hidden="true" />
-              <span>{t('ui.menu')}</span>
+              <Menu size={22} aria-hidden="true" />
             </button>
           </div>
-        </div>
+        ) : null}
 
-        <div className="rov-hud__bottom-wrap">
-          {activeWaypointId && hudMode !== 'hidden' ? (
-            <button
-              type="button"
-              className="explore-btn"
-              onClick={() => openWaypointModal(activeWaypointId)}
-              data-testid="btn-explore-waypoint"
-            >
-              <Sparkles size={18} aria-hidden="true" />
-              <span>{t('ui.explore')}</span>
-            </button>
-          ) : null}
-
-          {hudMode === 'full' ? (
-            <div className="rov-hud__bottom-bar" data-testid="hud-bottom-bar">
-              <div className="hud-control-group">
-                <span className="hud-control-group__label">{t('ui.speed')}</span>
-                <button
-                  type="button"
-                  className="hud-icon-btn"
-                  onClick={() => stepSpeedIndex(-1)}
-                  disabled={speedIndex <= 0}
-                  aria-label={`${t('ui.speed')} -`}
-                  data-testid="btn-speed-down"
-                >
-                  <Minus size={14} aria-hidden="true" />
-                </button>
-                <span className="hud-control-group__value" data-testid="hud-speed-value">
-                  {formatSpeedLevel(speedValue)}×
-                </span>
-                <button
-                  type="button"
-                  className="hud-icon-btn"
-                  onClick={() => stepSpeedIndex(1)}
-                  disabled={speedIndex >= SPEED_LEVELS.length - 1}
-                  aria-label={`${t('ui.speed')} +`}
-                  data-testid="btn-speed-up"
-                >
-                  <Plus size={14} aria-hidden="true" />
-                </button>
-              </div>
-
-              <div className="hud-control-group">
-                <span className="hud-control-group__label">{t('ui.zoom')}</span>
-                <span className="hud-control-group__value" data-testid="hud-fov-value">
-                  {Math.round(fov)}°
-                </span>
-              </div>
-
+        {showControls ? (
+          <div id="controls-container" data-testid="hud-bottom-bar">
+            <div className="control-grid d-pad">
               <button
                 type="button"
-                className="hud-btn"
-                onClick={triggerReset}
-                data-testid="btn-reset-pos"
+                className="btn up"
+                id="move-up"
+                aria-label={t('controls.move_strafe')}
+                {...bindHoldControl('move-up')}
               >
-                <RotateCcw size={14} aria-hidden="true" />
-                <span>{t('ui.reset_position')}</span>
+                <ArrowUp size={22} aria-hidden="true" />
               </button>
-
               <button
                 type="button"
-                className="hud-btn"
-                onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
-                aria-label={t('menu.language')}
-                data-testid="hud-lang-toggle"
+                className="btn left"
+                id="move-left"
+                aria-label={t('controls.move_strafe')}
+                {...bindHoldControl('move-left')}
               >
-                <span>{language.toUpperCase()}</span>
+                <ArrowLeft size={22} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="btn down"
+                id="move-down"
+                aria-label={t('controls.move_strafe')}
+                {...bindHoldControl('move-down')}
+              >
+                <ArrowDown size={22} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="btn right"
+                id="move-right"
+                aria-label={t('controls.move_strafe')}
+                {...bindHoldControl('move-right')}
+              >
+                <ArrowRight size={22} aria-hidden="true" />
               </button>
             </div>
-          ) : null}
-        </div>
+
+            <div className="control-grid right-side-grid">
+              {activeWaypointId ? (
+                <>
+                  <div className="grid-header-explore" id="explore-label">
+                    <div className="explore-pill">{t('ui.explore')}</div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn"
+                    id="btn-scan"
+                    aria-label={t('ui.explore')}
+                    onClick={() => openWaypointModal(activeWaypointId)}
+                    data-testid="btn-explore-waypoint"
+                  >
+                    <ScanEye size={22} aria-hidden="true" />
+                  </button>
+                </>
+              ) : null}
+
+              <div className="flex-col">
+                <span className="label">&nbsp;</span>
+                <button
+                  type="button"
+                  className="btn"
+                  id="reset-pos"
+                  title={t('ui.reset_position')}
+                  aria-label={t('ui.reset_position')}
+                  onClick={triggerReset}
+                  data-testid="btn-reset-pos"
+                >
+                  <Home size={22} aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className="flex-col">
+                <span className="label">
+                  {t('ui.speed')}{' '}
+                  <span id="speed-val" data-testid="hud-speed-value">
+                    {formatSpeedLevel(speedValue)}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="btn"
+                  id="speed-plus"
+                  aria-label={`${t('ui.speed')} +`}
+                  disabled={speedIndex >= SPEED_LEVELS.length - 1}
+                  onClick={() => stepSpeedIndex(1)}
+                  data-testid="btn-speed-up"
+                >
+                  <Plus size={22} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  id="speed-minus"
+                  aria-label={`${t('ui.speed')} -`}
+                  disabled={speedIndex <= 0}
+                  onClick={() => stepSpeedIndex(-1)}
+                  data-testid="btn-speed-down"
+                >
+                  <Minus size={22} aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className="flex-col">
+                <span className="label">{t('ui.zoom')}</span>
+                <button
+                  type="button"
+                  className="btn"
+                  id="zoom-in"
+                  aria-label={`${t('ui.zoom')} +`}
+                  {...bindHoldControl('zoom-in')}
+                >
+                  <ZoomIn size={22} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  id="zoom-out"
+                  aria-label={`${t('ui.zoom')} -`}
+                  {...bindHoldControl('zoom-out')}
+                >
+                  <ZoomOut size={22} aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className="flex-col">
+                <span className="label">{t('ui.vertical')}</span>
+                <button
+                  type="button"
+                  className="btn"
+                  id="ascend"
+                  aria-label={`${t('ui.vertical')} +`}
+                  {...bindHoldControl('ascend')}
+                >
+                  <ChevronsUp size={22} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  id="descend"
+                  aria-label={`${t('ui.vertical')} -`}
+                  {...bindHoldControl('descend')}
+                >
+                  <ChevronsDown size={22} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {loadingState.phase === 'loading' ? (
@@ -342,7 +455,13 @@ export function RovHud2D() {
             <p className="rov-overlay__subtitle">
               {activeDive ? t(activeDive.titleKey) : t('ui.loading_progress')}
             </p>
-            <div className="rov-progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={loadingPct} role="progressbar">
+            <div
+              className="rov-progress"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={loadingPct}
+              role="progressbar"
+            >
               <div className="rov-progress__bar" style={{ width: `${loadingPct}%` }} />
             </div>
             <div className="rov-progress__pct">{loadingPct}%</div>
@@ -360,7 +479,7 @@ export function RovHud2D() {
             <div className="rov-overlay__actions">
               <button
                 type="button"
-                className="sys-btn sys-btn--primary"
+                className="hud-exit-btn"
                 onClick={() => {
                   if (activeDiveSlug) {
                     launchDive(activeDiveSlug);
@@ -375,7 +494,7 @@ export function RovHud2D() {
               </button>
               <button
                 type="button"
-                className="sys-btn"
+                className="hud-exit-btn"
                 onClick={returnToMenu}
                 data-testid="btn-error-home"
               >

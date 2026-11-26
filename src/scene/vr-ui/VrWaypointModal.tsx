@@ -56,14 +56,13 @@ export function VrWaypointModal() {
       sizeX={1.25}
       maxHeight={380}
       pixelSize={0.0018}
-      backgroundColor="rgba(7, 22, 34, 0.94)"
-      borderColor="#00d2ff"
-      borderWidth={2}
-      borderRadius={16}
+      backgroundColor="rgba(5, 8, 12, 0.94)"
+      borderColor="rgba(255, 255, 255, 0.3)"
+      borderWidth={1.5}
+      borderRadius={6}
       padding={14}
       flexDirection="column"
       gap={10}
-      panelMaterialClass="plastic"
     >
       {/* Header */}
       <Container
@@ -74,30 +73,30 @@ export function VrWaypointModal() {
         flexShrink={0}
         paddingBottom={8}
         borderBottomWidth={1}
-        borderColor="rgba(0, 210, 255, 0.35)"
+        borderColor="rgba(255, 255, 255, 0.15)"
       >
-        <Text fontSize={18} fontWeight="bold" color="#66e3ff" flexGrow={1}>
+        <Text fontSize={16} fontWeight="bold" color="#ffffff" flexGrow={1}>
           {t(waypoint.titleKey)}
         </Text>
 
         <Container
           width={34}
           height={34}
-          borderRadius={8}
+          borderRadius={17}
           borderWidth={1}
-          borderColor="rgba(255, 107, 129, 0.65)"
-          backgroundColor="rgba(84, 24, 36, 0.9)"
+          borderColor="rgba(255, 255, 255, 0.25)"
+          backgroundColor="rgba(255, 255, 255, 0.08)"
           justifyContent="center"
           alignItems="center"
           cursor="pointer"
           pointerEventsType={{ deny: 'grab' }}
-          hover={{ backgroundColor: 'rgba(136, 36, 56, 0.96)' }}
+          hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
           onClick={(event) => {
             event.stopPropagation?.();
             closeWaypointModal();
           }}
         >
-          <Text fontSize={15} fontWeight="bold" color="#ffe6ea">
+          <Text fontSize={15} fontWeight="bold" color="#ffffff">
             ✕
           </Text>
         </Container>
@@ -118,13 +117,13 @@ export function VrWaypointModal() {
           maxHeight={290}
           overflow="scroll"
           paddingRight={8}
-          scrollbarColor="#00d2ff"
+          scrollbarColor="#ffffff"
           scrollbarWidth={4}
         >
           <Text
             fontSize={13}
             lineHeight={1.48}
-            color="#dceef7"
+            color="rgba(255, 255, 255, 0.9)"
             flexShrink={0}
           >
             {t(waypoint.content.descriptionKey)}
@@ -140,7 +139,7 @@ export function VrWaypointModal() {
             overflow="scroll"
             flexShrink={0}
             gap={10}
-            scrollbarColor="#00d2ff"
+            scrollbarColor="#ffffff"
             scrollbarWidth={4}
           >
             {activeGalleryItem ? (
@@ -148,10 +147,10 @@ export function VrWaypointModal() {
                 <Container
                   width="100%"
                   height={172}
-                  backgroundColor="#0b2234"
-                  borderRadius={10}
+                  backgroundColor="#05080c"
+                  borderRadius={4}
                   borderWidth={1}
-                  borderColor="rgba(0, 210, 255, 0.4)"
+                  borderColor="rgba(255, 255, 255, 0.2)"
                   overflow="hidden"
                   justifyContent="center"
                   alignItems="center"
@@ -173,59 +172,59 @@ export function VrWaypointModal() {
                   <Container
                     paddingX={12}
                     paddingY={5}
-                    borderRadius={7}
+                    borderRadius={4}
                     borderWidth={1}
-                    borderColor="rgba(0, 210, 255, 0.45)"
-                    backgroundColor="rgba(13, 40, 61, 0.92)"
+                    borderColor="rgba(255, 255, 255, 0.35)"
+                    backgroundColor="rgba(255, 255, 255, 0.08)"
                     opacity={gallery.length <= 1 ? 0.4 : 1}
                     cursor={gallery.length <= 1 ? 'default' : 'pointer'}
                     pointerEventsType={{ deny: 'grab' }}
                     hover={
                       gallery.length <= 1
                         ? undefined
-                        : { backgroundColor: 'rgba(20, 62, 92, 0.98)' }
+                        : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
                     }
                     onClick={(event) => {
                       event.stopPropagation?.();
                       handlePrev();
                     }}
                   >
-                    <Text fontSize={13} fontWeight="bold" color="#dff4ff">
+                    <Text fontSize={13} fontWeight="bold" color="#ffffff">
                       ‹
                     </Text>
                   </Container>
 
-                  <Text fontSize={11} fontWeight="bold" color="#9ee7ff">
+                  <Text fontSize={11} fontWeight="bold" color="#ffffff">
                     {`${safeGalleryIndex + 1} / ${gallery.length}`}
                   </Text>
 
                   <Container
                     paddingX={12}
                     paddingY={5}
-                    borderRadius={7}
+                    borderRadius={4}
                     borderWidth={1}
-                    borderColor="rgba(0, 210, 255, 0.45)"
-                    backgroundColor="rgba(13, 40, 61, 0.92)"
+                    borderColor="rgba(255, 255, 255, 0.35)"
+                    backgroundColor="rgba(255, 255, 255, 0.08)"
                     opacity={gallery.length <= 1 ? 0.4 : 1}
                     cursor={gallery.length <= 1 ? 'default' : 'pointer'}
                     pointerEventsType={{ deny: 'grab' }}
                     hover={
                       gallery.length <= 1
                         ? undefined
-                        : { backgroundColor: 'rgba(20, 62, 92, 0.98)' }
+                        : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
                     }
                     onClick={(event) => {
                       event.stopPropagation?.();
                       handleNext();
                     }}
                   >
-                    <Text fontSize={13} fontWeight="bold" color="#dff4ff">
+                    <Text fontSize={13} fontWeight="bold" color="#ffffff">
                       ›
                     </Text>
                   </Container>
                 </Container>
 
-                <Text fontSize={11} lineHeight={1.35} color="#9bc7dd">
+                <Text fontSize={11} lineHeight={1.35} color="rgba(255, 255, 255, 0.7)">
                   {t(activeGalleryItem.captionKey)}
                 </Text>
               </Container>
@@ -237,10 +236,10 @@ export function VrWaypointModal() {
                   <Container
                     width="100%"
                     height={190}
-                    backgroundColor="#041019"
-                    borderRadius={10}
+                    backgroundColor="#05080c"
+                    borderRadius={4}
                     borderWidth={1}
-                    borderColor="rgba(0, 210, 255, 0.45)"
+                    borderColor="rgba(255, 255, 255, 0.2)"
                     overflow="hidden"
                   >
                     <Video
@@ -255,7 +254,7 @@ export function VrWaypointModal() {
                     />
                   </Container>
                   {waypoint.content.videoCaptionKey ? (
-                    <Text fontSize={11} lineHeight={1.35} color="#9bc7dd">
+                    <Text fontSize={11} lineHeight={1.35} color="rgba(255, 255, 255, 0.7)">
                       {t(waypoint.content.videoCaptionKey)}
                     </Text>
                   ) : null}
@@ -265,22 +264,22 @@ export function VrWaypointModal() {
                   flexDirection="column"
                   gap={8}
                   padding={14}
-                  borderRadius={10}
+                  borderRadius={4}
                   borderWidth={1}
-                  borderColor="rgba(0, 210, 255, 0.45)"
-                  backgroundColor="rgba(10, 34, 52, 0.92)"
+                  borderColor="rgba(255, 255, 255, 0.2)"
+                  backgroundColor="rgba(255, 255, 255, 0.05)"
                   flexShrink={0}
                 >
-                  <Text fontSize={10} fontWeight="bold" color="#00d2ff">
+                  <Text fontSize={10} fontWeight="bold" color="#00a3e0">
                     {waypoint.content.youtubeId
                       ? `YOUTUBE · ${waypoint.content.youtubeId}`
                       : 'VIDEO'}
                   </Text>
-                  <Text fontSize={13} fontWeight="bold" color="#f0f8ff" lineHeight={1.35}>
+                  <Text fontSize={13} fontWeight="bold" color="#ffffff" lineHeight={1.35}>
                     {t('vr.video_unavailable')}
                   </Text>
                   {waypoint.content.videoCaptionKey ? (
-                    <Text fontSize={11} lineHeight={1.4} color="#9bc7dd">
+                    <Text fontSize={11} lineHeight={1.4} color="rgba(255, 255, 255, 0.7)">
                       {t(waypoint.content.videoCaptionKey)}
                     </Text>
                   ) : null}

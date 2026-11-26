@@ -27,26 +27,26 @@ function HudButton({
   disabled = false,
   minWidth,
 }: HudButtonProps) {
-  let backgroundColor = 'rgba(13, 40, 61, 0.92)';
-  let hoverBackground = 'rgba(20, 62, 92, 0.98)';
-  let borderColor = 'rgba(0, 210, 255, 0.45)';
-  let textColor = '#dff4ff';
+  let backgroundColor = 'rgba(255, 255, 255, 0.08)';
+  let hoverBackground = 'rgba(255, 255, 255, 0.2)';
+  let borderColor = 'rgba(255, 255, 255, 0.45)';
+  let textColor = '#ffffff';
 
   if (accent) {
-    backgroundColor = '#009ec2';
-    hoverBackground = '#00d2ff';
-    borderColor = '#66ecff';
-    textColor = '#031520';
-  } else if (danger) {
-    backgroundColor = 'rgba(84, 24, 36, 0.9)';
-    hoverBackground = 'rgba(128, 34, 52, 0.96)';
-    borderColor = 'rgba(255, 107, 129, 0.65)';
-    textColor = '#ffe6ea';
-  } else if (active) {
-    backgroundColor = 'rgba(0, 140, 178, 0.42)';
-    hoverBackground = 'rgba(0, 175, 216, 0.55)';
-    borderColor = '#00d2ff';
+    backgroundColor = 'rgba(0, 163, 224, 0.25)';
+    hoverBackground = 'rgba(0, 163, 224, 0.45)';
+    borderColor = '#00aaff';
     textColor = '#ffffff';
+  } else if (danger) {
+    backgroundColor = 'rgba(255, 85, 85, 0.16)';
+    hoverBackground = 'rgba(255, 85, 85, 0.35)';
+    borderColor = '#ff5555';
+    textColor = '#ff8888';
+  } else if (active) {
+    backgroundColor = '#ffffff';
+    hoverBackground = '#e6e6e6';
+    borderColor = '#ffffff';
+    textColor = '#050508';
   }
 
   return (
@@ -54,7 +54,7 @@ function HudButton({
       paddingX={10}
       paddingY={6}
       minWidth={minWidth}
-      borderRadius={8}
+      borderRadius={4}
       borderWidth={1}
       borderColor={borderColor}
       backgroundColor={backgroundColor}
@@ -85,9 +85,10 @@ function HudButton({
 interface TelemetryCellProps {
   label: string;
   value: string;
+  valueColor?: string;
 }
 
-function TelemetryCell({ label, value }: TelemetryCellProps) {
+function TelemetryCell({ label, value, valueColor = '#ffffff' }: TelemetryCellProps) {
   return (
     <Container
       flexDirection="column"
@@ -95,16 +96,16 @@ function TelemetryCell({ label, value }: TelemetryCellProps) {
       flexBasis={0}
       paddingX={10}
       paddingY={6}
-      borderRadius={8}
+      borderRadius={4}
       borderWidth={1}
-      borderColor="rgba(0, 210, 255, 0.28)"
-      backgroundColor="rgba(5, 17, 27, 0.85)"
+      borderColor="rgba(255, 255, 255, 0.2)"
+      backgroundColor="rgba(5, 8, 12, 0.72)"
       gap={2}
     >
-      <Text fontSize={9} fontWeight="bold" color="#6bcce6">
+      <Text fontSize={9} fontWeight="bold" color="rgba(255, 255, 255, 0.65)">
         {label}
       </Text>
-      <Text fontSize={14} fontWeight="bold" color="#f0fbff">
+      <Text fontSize={14} fontWeight="bold" color={valueColor}>
         {value}
       </Text>
     </Container>
@@ -143,8 +144,8 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
   const headingDeg = Math.round(((telemetryLive.headingDeg % 360) + 360) % 360)
     .toString()
     .padStart(3, '0');
-  const depthText = `${Math.round(telemetryLive.depthMeters)} m`;
-  const tempText = activeDive ? `${activeDive.telemetry.temp.toFixed(1)} °C` : '-- °C';
+  const depthText = `${Math.round(telemetryLive.depthMeters)} M`;
+  const tempText = activeDive ? `${activeDive.telemetry.temp.toFixed(2)} °C` : '-- °C';
 
   const missionComplete = siteWaypoints.length > 0 && visitedCount >= siteWaypoints.length;
 
@@ -161,15 +162,14 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
       sizeX={1.12}
       sizeY={0.34}
       pixelSize={0.0018}
-      backgroundColor="rgba(7, 22, 34, 0.9)"
-      borderColor="#00d2ff"
-      borderWidth={2}
-      borderRadius={14}
+      backgroundColor="rgba(5, 8, 12, 0.9)"
+      borderColor="rgba(255, 255, 255, 0.3)"
+      borderWidth={1.5}
+      borderRadius={4}
       padding={12}
       flexDirection="column"
       justifyContent="space-between"
       gap={8}
-      panelMaterialClass="plastic"
     >
       {/* Top status bar: Dive ID + Site name + Mission counter */}
       <Container
@@ -182,16 +182,16 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
           <Container
             paddingX={8}
             paddingY={3}
-            borderRadius={6}
-            backgroundColor="rgba(0, 210, 255, 0.18)"
+            borderRadius={3}
+            backgroundColor="rgba(0, 163, 224, 0.14)"
             borderWidth={1}
-            borderColor="rgba(0, 210, 255, 0.5)"
+            borderColor="rgba(0, 163, 224, 0.45)"
           >
-            <Text fontSize={10} fontWeight="bold" color="#66e3ff">
-              {`${t('telemetry.id')} ${activeDive?.id ?? '---'}`}
+            <Text fontSize={10} fontWeight="bold" color="#00a3e0">
+              {`ID ${activeDive?.id ?? '---'}`}
             </Text>
           </Container>
-          <Text fontSize={13} fontWeight="bold" color="#e8f7ff">
+          <Text fontSize={13} fontWeight="bold" color="#ffffff">
             {activeDive ? t(activeDive.titleKey) : 'ROV SuBastian'}
           </Text>
         </Container>
@@ -199,21 +199,21 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
         <Container
           paddingX={10}
           paddingY={4}
-          borderRadius={6}
+          borderRadius={4}
           borderWidth={1}
-          borderColor={missionComplete ? '#2ee59d' : 'rgba(0, 210, 255, 0.4)'}
+          borderColor={missionComplete ? '#00ff88' : 'rgba(255, 255, 255, 0.2)'}
           backgroundColor={
             missionComplete
-              ? 'rgba(18, 92, 68, 0.55)'
+              ? 'rgba(0, 255, 136, 0.18)'
               : gamifiedMode
-                ? 'rgba(0, 120, 160, 0.32)'
-                : 'rgba(6, 20, 32, 0.78)'
+                ? 'rgba(0, 0, 0, 0.5)'
+                : 'rgba(0, 0, 0, 0.4)'
           }
         >
           <Text
             fontSize={10}
             fontWeight="bold"
-            color={missionComplete ? '#7bffc9' : '#9ee7ff'}
+            color={missionComplete ? '#00ff88' : '#ffffff'}
           >
             {`${t('ui.mission_analyzed')}: ${visitedCount} / ${siteWaypoints.length}`}
           </Text>
@@ -222,9 +222,9 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
 
       {/* Telemetry & speed control row */}
       <Container flexDirection="row" alignItems="stretch" gap={8}>
-        <TelemetryCell label={t('telemetry.depth')} value={depthText} />
-        <TelemetryCell label={t('telemetry.temp')} value={tempText} />
-        <TelemetryCell label={t('telemetry.heading')} value={`${headingDeg}°`} />
+        <TelemetryCell label="DEPTH" value={depthText} />
+        <TelemetryCell label="TEMP." value={tempText} />
+        <TelemetryCell label="HEADING" value={`${headingDeg} °`} />
 
         <Container
           flexDirection="row"
@@ -234,18 +234,18 @@ export function VrCockpitHud({ inXr }: VrCockpitHudProps) {
           flexBasis={0}
           paddingX={10}
           paddingY={6}
-          borderRadius={8}
+          borderRadius={4}
           borderWidth={1}
-          borderColor="rgba(0, 210, 255, 0.28)"
-          backgroundColor="rgba(5, 17, 27, 0.85)"
+          borderColor="rgba(255, 255, 255, 0.2)"
+          backgroundColor="rgba(5, 8, 12, 0.72)"
           gap={6}
         >
           <Container flexDirection="column" gap={2}>
-            <Text fontSize={9} fontWeight="bold" color="#6bcce6">
+            <Text fontSize={9} fontWeight="bold" color="rgba(255, 255, 255, 0.65)">
               {t('ui.speed')}
             </Text>
-            <Text fontSize={14} fontWeight="bold" color="#f0fbff">
-              {`${formatSpeedLevel(speedLevel)}x`}
+            <Text fontSize={14} fontWeight="bold" color="#00ff00">
+              {formatSpeedLevel(speedLevel)}
             </Text>
           </Container>
           <Container flexDirection="row" gap={4} alignItems="center">
