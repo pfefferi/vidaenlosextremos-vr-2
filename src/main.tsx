@@ -1,3 +1,5 @@
+import './i18n';
+import './styles/app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
