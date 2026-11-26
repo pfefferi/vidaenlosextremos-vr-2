@@ -110,10 +110,8 @@ export function UnderwaterEnv({ dive, floorY }: UnderwaterEnvProps) {
       <color attach="background" args={[dive.theme.bgColor]} />
       <fogExp2 attach="fog" args={[dive.theme.fogColor, 0.032]} />
 
-      {/* Neutral daylight-balanced underwater illumination */}
-      <hemisphereLight args={['#f0f7ff', '#2b3944', 1.4]} />
-      <directionalLight position={[12, 24, 10]} intensity={1.8} color="#f7fbff" />
-      <directionalLight position={[-10, 12, -12]} intensity={0.6} color="#dceeff" />
+      {/* Constant, uniform diffuse illumination (zero spotlights or directional hot-spots) */}
+      <ambientLight intensity={3.14} color="#ffffff" />
 
       {/* Extended seafloor disc */}
       <mesh position={[0, floorY - 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
