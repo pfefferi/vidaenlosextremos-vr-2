@@ -66,33 +66,48 @@ button {
   border: 0;
 }
 
-/* Prevent accidental text selection on touch/HUD controls */
+/* Prevent accidental text selection and pinch/scroll hijack in dive mode */
+.dive-viewport,
+.dive-viewport canvas,
 #ui-layer,
 #controls-container,
 .btn,
 .icon-btn,
+#btn-scan,
+#hud-toggle,
+#menu-toggle {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
 .tab-btn,
 .menu-item,
 .menu-close-btn,
 .modal-close-btn,
 .lang-btn,
 #explore-label,
-#btn-scan,
 .mission-card {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
-.btn,
-.icon-btn,
 .tab-btn,
 .menu-item,
 .menu-close-btn,
 .modal-close-btn,
-.lang-btn,
-#btn-scan {
+.lang-btn {
   touch-action: manipulation;
+}
+
+#system-menu,
+#controls-overlay,
+#modal-card .modal-body,
+.mission-menu {
+  touch-action: pan-y;
 }
 
 .flex-col {

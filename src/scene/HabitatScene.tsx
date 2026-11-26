@@ -147,18 +147,31 @@ export function HabitatScene({ dive, vrUiSlot }: HabitatSceneProps) {
     const onContextRestored = () => {
       setContextLost(false);
     };
+    const preventTouchGesture = (event: Event) => {
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+    };
 
     dom.addEventListener('webglcontextlost', onContextLost);
     dom.addEventListener('webglcontextrestored', onContextRestored);
+    dom.addEventListener('touchstart', preventTouchGesture, { passive: false });
+    dom.addEventListener('touchmove', preventTouchGesture, { passive: false });
+    dom.addEventListener('gesturestart', preventTouchGesture, { passive: false });
+    dom.addEventListener('gesturechange', preventTouchGesture, { passive: false });
 
     canvasCleanupRef.current = () => {
       dom.removeEventListener('webglcontextlost', onContextLost);
       dom.removeEventListener('webglcontextrestored', onContextRestored);
+      dom.removeEventListener('touchstart', preventTouchGesture);
+      dom.removeEventListener('touchmove', preventTouchGesture);
+      dom.removeEventListener('gesturestart', preventTouchGesture);
+      dom.removeEventListener('gesturechange', preventTouchGesture);
     };
   }, []);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div className="dive-viewport" style={{ position: 'relative', width: '100%', height: '100%' }}>
       <HabitatErrorBoundary onRetry={handleRetry}>
         <Canvas
           key={retryKey}

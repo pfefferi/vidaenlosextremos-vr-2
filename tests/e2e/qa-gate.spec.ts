@@ -355,3 +355,205 @@ test('5. Clam Bed (S0889) deep-link & 3-angle visual QA', async ({ page }) => {
 
   assertNoErrors(tracker, 'Clam Bed QA');
 });
+
+test('6. Mobile touch drag, multi-touch hold+look, pinch lock, and gyroscope', async ({ page }) => {
+  const tracker = attachErrorTracker(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  await page.goto('/?site=whale-fall', { waitUntil: 'networkidle' });
+  await waitForDiveReady(page, 100_000);
+
+  // Verify touch-action: none on dive canvas & in-dive controls
+  const touchActions = await page.evaluate(() => {
+    const canvas = document.querySelector('canvas');
+    const moveUp = document.querySelector('#move-up');
+    return {
+      canvas: canvas ? getComputedStyle(canvas).touchAction : null,
+      moveUp: moveUp ? getComputedStyle(moveUp).touchAction : null,
+    };
+  });
+  expect(touchActions.canvas).toBe('none');
+  expect(touchActions.moveUp).toBe('none');
+
+  const getHudPose = () =>
+    page.evaluate(() => {
+      const telemetryText = document.querySelector('#telemetry-block')?.textContent ?? '';
+      const coordsText = document.querySelector('#coords-block')?.textContent ?? '';
+      return { telemetryText, coordsText };
+    });
+
+  const initialPose = await getHudPose();
+
+  // 1-finger continuous touch drag (220px across 5 steps) must rotate heading by > 25 deg
+  await page.evaluate(() => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) throw new Error('canvas not found');
+    const rect = canvas.getBoundingClientRect();
+    const startX = rect.left + rect.width * 0.5;
+    const startY = rect.top + rect.height * 0.4;
+    const makeInit = (x: number, y: number): PointerEventInit => ({
+      bubbles: true,
+      cancelable: true,
+      pointerId: 11,
+      pointerType: 'touch',
+      isPrimary: true,
+      clientX: x,
+      clientY: y,
+      button: 0,
+      buttons: 1,
+    });
+    canvas.dispatchEvent(new PointerEvent('pointerdown', makeInit(startX, startY)));
+    for (let i = 1; i <= 5; i += 1) {
+      canvas.dispatchEvent(new PointerEvent('pointermove', makeInit(startX + i * 44, startY)));
+    }
+    canvas.dispatchEvent(
+      new PointerEvent('pointerup', {
+        ...makeInit(startX + 220, startY),
+        buttons: 0,
+      })
+    );
+  });
+
+  await waitAnimationFrames(page, 4);
+  await page.waitForTimeout(150);
+
+  const afterDragPose = await getHudPose();
+  const extractHeading = (text: string): number => {
+    const match = /HEADING\s*(\d+)/.exec(text);
+    return match ? Number(match[1]) : Number.NaN;
+  };
+  const angleDelta = (a: number, b: number): number => {
+    const diff = Math.abs(((a - b + 540) % 360) - 180);
+    return diff;
+  };
+
+  const h0 = extractHeading(initialPose.telemetryText);
+  const h1 = extractHeading(afterDragPose.telemetryText);
+  expect(Number.isFinite(h0)).toBe(true);
+  expect(Number.isFinite(h1)).toBe(true);
+  expect(angleDelta(h1, h0)).toBeGreaterThan(25);
+
+  // Simultaneous multi-touch: hold #move-up (pointerId 20, primary) + drag canvas (pointerId 21, non-primary)
+  await page.evaluate(() => {
+    const moveUp = document.querySelector('#move-up');
+    const canvas = document.querySelector('canvas');
+    if (!moveUp || !canvas) throw new Error('controls or canvas missing');
+    const upRect = moveUp.getBoundingClientRect();
+    const cRect = canvas.getBoundingClientRect();
+
+    moveUp.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 20,
+        pointerType: 'touch',
+        isPrimary: true,
+        clientX: upRect.left + upRect.width / 2,
+        clientY: upRect.top + upRect.height / 2,
+        button: 0,
+        buttons: 1,
+      })
+    );
+
+    const cx = cRect.left + cRect.width * 0.5;
+    const cy = cRect.top + cRect.height * 0.4;
+    canvas.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 21,
+        pointerType: 'touch',
+        isPrimary: false,
+        clientX: cx,
+        clientY: cy,
+        button: 0,
+        buttons: 1,
+      })
+    );
+    for (let i = 1; i <= 4; i += 1) {
+      canvas.dispatchEvent(
+        new PointerEvent('pointermove', {
+          bubbles: true,
+          cancelable: true,
+          pointerId: 21,
+          pointerType: 'touch',
+          isPrimary: false,
+          clientX: cx - i * 35,
+          clientY: cy,
+          button: 0,
+          buttons: 1,
+        })
+      );
+    }
+  });
+
+  await waitAnimationFrames(page, 10);
+  await page.waitForTimeout(250);
+
+  await page.evaluate(() => {
+    const moveUp = document.querySelector('#move-up');
+    const canvas = document.querySelector('canvas');
+    moveUp?.dispatchEvent(
+      new PointerEvent('pointerup', {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 20,
+        pointerType: 'touch',
+        isPrimary: true,
+        button: 0,
+        buttons: 0,
+      })
+    );
+    canvas?.dispatchEvent(
+      new PointerEvent('pointerup', {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 21,
+        pointerType: 'touch',
+        isPrimary: false,
+        button: 0,
+        buttons: 0,
+      })
+    );
+  });
+
+  await waitAnimationFrames(page, 4);
+  await page.waitForTimeout(150);
+
+  const afterMultiPose = await getHudPose();
+  const h2 = extractHeading(afterMultiPose.telemetryText);
+  expect(afterMultiPose.coordsText).not.toBe(afterDragPose.coordsText);
+  expect(angleDelta(h2, h1)).toBeGreaterThan(15);
+
+  // Open SystemMenu, toggle gyro ON (should close menu), dispatch DeviceOrientationEvent alpha 0 -> 25
+  await page.getByTestId('btn-system-menu').click();
+  await expect(page.getByTestId('system-menu')).toBeVisible();
+  await page.getByTestId('switch-gyro').click();
+  await expect(page.getByTestId('system-menu')).toHaveCount(0);
+
+  await page.evaluate(() => {
+    window.dispatchEvent(
+      new DeviceOrientationEvent('deviceorientation', {
+        alpha: 0,
+        beta: 90,
+        gamma: 0,
+      })
+    );
+    window.dispatchEvent(
+      new DeviceOrientationEvent('deviceorientation', {
+        alpha: 25,
+        beta: 90,
+        gamma: 0,
+      })
+    );
+  });
+
+  await waitAnimationFrames(page, 4);
+  await page.waitForTimeout(150);
+
+  const afterGyroPose = await getHudPose();
+  const h3 = extractHeading(afterGyroPose.telemetryText);
+  expect(angleDelta(h3, h2)).toBeGreaterThan(18);
+
+  assertNoErrors(tracker, 'Mobile touch & gyro QA');
+});
