@@ -274,7 +274,9 @@ export function RovHud2D() {
                 title={t('vr.enter')}
                 aria-label={t('vr.enter')}
                 onClick={() => {
-                  void xrStore.enterVR();
+                  void xrStore.enterVR().catch((err: unknown) => {
+                    console.warn('[VR] Unable to start WebXR session:', err);
+                  });
                 }}
                 data-testid="btn-enter-vr"
               >

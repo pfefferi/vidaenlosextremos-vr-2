@@ -7,7 +7,7 @@ import {
   type ErrorInfo,
   type ReactNode,
 } from 'react';
-import { Canvas, type RootState } from '@react-three/fiber';
+import { Canvas, type GLProps, type RootState } from '@react-three/fiber';
 import { XR } from '@react-three/xr';
 import * as THREE from 'three';
 import { xrStore } from '../store/xrStore';
@@ -25,6 +25,7 @@ export interface HabitatSceneProps {
 interface ErrorBoundaryProps {
   children: ReactNode;
   onRetry: () => void;
+  suppressOverlay?: boolean;
 }
 
 interface ErrorBoundaryState {
@@ -49,6 +50,9 @@ class HabitatErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     if (this.state.error) {
+      if (this.props.suppressOverlay) {
+        return null;
+      }
       return (
         <div
           role="alert"
@@ -93,8 +97,58 @@ class HabitatErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
+interface VrUiErrorBoundaryState {
+  hasError: boolean;
+}
+
+class VrUiErrorBoundary extends Component<{ children: ReactNode }, VrUiErrorBoundaryState> {
+  state: VrUiErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): VrUiErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.warn('[VR UI] Suppressed spatial UI error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
 const DEFAULT_FLOOR_Y = -5;
 const DEFAULT_MOVE_SPEED = 2.4;
+
+const createXrCompatibleRenderer: GLProps = (defaultProps) => {
+  const canvas = defaultProps.canvas as HTMLCanvasElement;
+  const contextAttributes: WebGLContextAttributes & { xrCompatible?: boolean } = {
+    alpha: true,
+    depth: true,
+    stencil: false,
+    antialias: true,
+    premultipliedAlpha: true,
+    preserveDrawingBuffer: false,
+    powerPreference: 'high-performance',
+    failIfMajorPerformanceCaveat: false,
+    xrCompatible: true,
+  };
+  const glContext =
+    (canvas.getContext('webgl2', contextAttributes) as WebGL2RenderingContext | null) ??
+    undefined;
+  const renderer = new THREE.WebGLRenderer({
+    ...defaultProps,
+    context: glContext,
+    antialias: true,
+    powerPreference: 'high-performance',
+  });
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  return renderer;
+};
 
 export function HabitatScene({ dive, vrUiSlot }: HabitatSceneProps) {
   const [terrainInfo, setTerrainInfo] = useState<{
@@ -172,16 +226,11 @@ export function HabitatScene({ dive, vrUiSlot }: HabitatSceneProps) {
 
   return (
     <div className="dive-viewport" style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <HabitatErrorBoundary onRetry={handleRetry}>
+      <HabitatErrorBoundary key={retryKey} onRetry={handleRetry} suppressOverlay={contextLost}>
         <Canvas
-          key={retryKey}
           dpr={[1, 2]}
-          gl={{
-            antialias: true,
-            powerPreference: 'high-performance',
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.0,
-          }}
+          frameloop={contextLost ? 'never' : 'always'}
+          gl={createXrCompatibleRenderer}
           camera={{ fov: 80, near: 0.05, far: 250 }}
           onCreated={handleCanvasCreated}
         >
@@ -195,7 +244,7 @@ export function HabitatScene({ dive, vrUiSlot }: HabitatSceneProps) {
               baseMoveSpeedPerSec={terrainInfo.baseMoveSpeedPerSec}
             />
             <Waypoints3D dive={dive} />
-            {vrUiSlot}
+            <VrUiErrorBoundary>{vrUiSlot}</VrUiErrorBoundary>
           </XR>
         </Canvas>
       </HabitatErrorBoundary>

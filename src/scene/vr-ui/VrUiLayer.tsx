@@ -41,8 +41,8 @@ export function VrUiLayer() {
     }
   }, [isActive]);
 
-  useFrame(({ camera }, rawDelta) => {
-    if (!isActive) return;
+  useFrame(({ camera, gl }, rawDelta) => {
+    if (!isActive || gl.getContext().isContextLost()) return;
     const anchor = anchorRef.current;
     if (!anchor) return;
 
