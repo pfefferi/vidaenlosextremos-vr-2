@@ -18,7 +18,9 @@ export function WaypointDialog() {
 
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const galleryRef = useRef<HTMLDivElement | null>(null);
+  const lightboxRef = useRef<PhotoSwipeLightbox | null>(null);
   const pswpOpenRef = useRef(false);
+  const lastPswpCloseAtRef = useRef(0);
 
   const siteWaypoints = activeDiveSlug ? (waypointsBySite[activeDiveSlug] ?? []) : [];
   const activeWaypoint = openModalWaypointId
@@ -63,10 +65,16 @@ export function WaypointDialog() {
       wheelToZoom: true,
     });
 
+    lightbox.on('beforeOpen', () => {
+      pswpOpenRef.current = true;
+    });
     lightbox.on('openingAnimationStart', () => {
       pswpOpenRef.current = true;
     });
     lightbox.on('close', () => {
+      if (pswpOpenRef.current) {
+        lastPswpCloseAtRef.current = performance.now();
+      }
       pswpOpenRef.current = false;
     });
     lightbox.on('destroy', () => {
@@ -74,9 +82,11 @@ export function WaypointDialog() {
     });
 
     lightbox.init();
+    lightboxRef.current = lightbox;
 
     return () => {
       pswpOpenRef.current = false;
+      lightboxRef.current = null;
       lightbox.destroy();
     };
   }, [activeWaypoint?.id, activeWaypoint?.content.gallery?.length]);
@@ -84,6 +94,10 @@ export function WaypointDialog() {
   const handleCancel = (e: SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault();
     if (pswpOpenRef.current) {
+      lightboxRef.current?.pswp?.close();
+      return;
+    }
+    if (performance.now() - lastPswpCloseAtRef.current < 150) {
       return;
     }
     closeWaypointModal();

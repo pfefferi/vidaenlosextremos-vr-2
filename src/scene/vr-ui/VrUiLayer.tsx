@@ -6,7 +6,7 @@ import { useRovStore } from '../../store/rovStore';
 import { VrCockpitHud } from './VrCockpitHud';
 import { VrWaypointModal } from './VrWaypointModal';
 
-const ANCHOR_DISTANCE_M = 1.45;
+const ANCHOR_DISTANCE_M = 0.95;
 const MAX_FRAME_DT = 0.05;
 
 const _camPos = new Vector3();
@@ -84,11 +84,11 @@ export function VrUiLayer() {
 
   return (
     <group ref={anchorRef}>
-      <group position={[0, -0.36, 0]} rotation={[-0.35, 0, 0]}>
+      <group position={[0, -0.17, 0]} rotation={[-0.22, 0, 0]} scale={0.62}>
         <VrCockpitHud inXr={inXr} />
       </group>
       {openModalWaypointId ? (
-        <group position={[0, 0.18, 0.08]}>
+        <group position={[0, 0.08, 0.05]} scale={0.72}>
           <VrWaypointModal />
         </group>
       ) : null}
