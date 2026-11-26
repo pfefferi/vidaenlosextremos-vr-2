@@ -131,8 +131,28 @@ export function SystemMenu() {
           type="button"
           className={`menu-item ${gyroEnabled ? 'gyro-on' : 'gyro-off'}`}
           aria-pressed={gyroEnabled}
-          onClick={() => {
-            setGyroEnabled(!gyroEnabled);
+          onClick={async () => {
+            const next = !gyroEnabled;
+            if (next) {
+              const doe =
+                typeof window !== 'undefined'
+                  ? (window.DeviceOrientationEvent as unknown as
+                      | { requestPermission?: () => Promise<string> }
+                      | undefined)
+                  : undefined;
+              if (typeof doe?.requestPermission === 'function') {
+                try {
+                  const res = await doe.requestPermission();
+                  if (res !== 'granted') return;
+                } catch {
+                  return;
+                }
+              }
+            }
+            setGyroEnabled(next);
+            if (next) {
+              setSystemMenuOpen(false);
+            }
           }}
           data-testid="switch-gyro"
         >

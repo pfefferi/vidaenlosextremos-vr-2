@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { XROrigin, useXR, useXRInputSourceState } from '@react-three/xr';
 import * as THREE from 'three';
 import { BvhTerrainCollider } from '../engine/bvhCollider';
+import { GyroLookTracker } from '../engine/gyroOrientation';
 import { rovInputBus } from '../engine/inputBus';
 import { stepRovKinematics, type RovKinematicsState } from '../engine/rovPhysics';
 import { useRovStore } from '../store/rovStore';
@@ -62,6 +63,7 @@ export function RovRig({
 
   const fov = useRovStore((s) => s.fov);
   const resetTrigger = useRovStore((s) => s.resetTrigger);
+  const gyroEnabled = useRovStore((s) => s.gyroEnabled);
 
   const xrOriginRef = useRef<THREE.Group>(null);
 
@@ -71,8 +73,11 @@ export function RovRig({
   diveRef.current = dive;
   const xrSessionRef = useRef(xrSession);
   xrSessionRef.current = xrSession;
-  const isDraggingRef = useRef(false);
+  const activeLookPointerIdRef = useRef<number | null>(null);
+  const activeLookTypeRef = useRef<string>('mouse');
   const lastPointerRef = useRef({ x: 0, y: 0 });
+  const gyroTrackerRef = useMemo(() => new GyroLookTracker(), []);
+  const gyroDeltaRef = useRef({ yawDeg: 0, pitchDeg: 0 });
   const telemetryAccumRef = useRef(0);
   const snapTurnLockedRef = useRef(false);
   const xrPrevButtonsRef = useRef({ scan: false, menu: false });
@@ -112,6 +117,9 @@ export function RovRig({
     qaOverrideRef.current = null;
     snapTurnLockedRef.current = false;
     telemetryAccumRef.current = 0;
+    gyroTrackerRef.reset();
+    gyroDeltaRef.current.yawDeg = 0;
+    gyroDeltaRef.current.pitchDeg = 0;
 
     if (xrOriginRef.current) {
       xrOriginRef.current.position.set(
@@ -164,33 +172,100 @@ export function RovRig({
     };
   }, [camera, dive.slug]);
 
-  // Register desktop/keyboard/wheel/blur input listeners
+  // Register quaternion gyroscope orientation listener when enabled outside XR
+  useEffect(() => {
+    gyroTrackerRef.reset();
+    gyroDeltaRef.current.yawDeg = 0;
+    gyroDeltaRef.current.pitchDeg = 0;
+
+    if (!gyroEnabled || xrSession || typeof window === 'undefined') {
+      return;
+    }
+
+    const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
+      if (e.alpha === null || e.beta === null || e.gamma === null) return;
+      const legacyOrientation = (window as unknown as { orientation?: number }).orientation;
+      const screenOrientDeg =
+        typeof window.screen?.orientation?.angle === 'number'
+          ? window.screen.orientation.angle
+          : typeof legacyOrientation === 'number'
+            ? legacyOrientation
+            : 0;
+      const delta = gyroTrackerRef.update(e.alpha, e.beta, e.gamma, screenOrientDeg);
+      gyroDeltaRef.current.yawDeg += delta.yawDeltaDeg;
+      gyroDeltaRef.current.pitchDeg += delta.pitchDeltaDeg;
+    };
+
+    const handleOrientationChange = () => {
+      gyroTrackerRef.reset();
+    };
+
+    window.addEventListener('deviceorientation', handleDeviceOrientation);
+    window.addEventListener('orientationchange', handleOrientationChange);
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleDeviceOrientation);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      gyroTrackerRef.reset();
+      gyroDeltaRef.current.yawDeg = 0;
+      gyroDeltaRef.current.pitchDeg = 0;
+    };
+  }, [gyroEnabled, xrSession, gyroTrackerRef]);
+
+  // Register desktop/touch/keyboard/wheel/blur input listeners
   useEffect(() => {
     const domElement = gl.domElement;
+    let lastProcessedMoveEvent: PointerEvent | null = null;
 
     const handlePointerDown = (e: PointerEvent) => {
-      if (e.button !== 0 || !e.isPrimary) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
       const s = useRovStore.getState();
       if (s.systemMenuOpen || s.openModalWaypointId !== null || s.controlsGuideOpen) return;
-      isDraggingRef.current = true;
+      if (activeLookPointerIdRef.current !== null) return;
+
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      activeLookPointerIdRef.current = e.pointerId;
+      activeLookTypeRef.current = e.pointerType || 'mouse';
       lastPointerRef.current = { x: e.clientX, y: e.clientY };
+
+      try {
+        domElement.setPointerCapture?.(e.pointerId);
+      } catch {
+        // Synthetic pointer events in tests may not map to an active native pointer
+      }
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-      if (!isDraggingRef.current) return;
+      if (lastProcessedMoveEvent === e) return;
+      lastProcessedMoveEvent = e;
+      if (e.pointerId !== activeLookPointerIdRef.current) return;
+
       const s = useRovStore.getState();
       if (s.systemMenuOpen || s.openModalWaypointId !== null || s.controlsGuideOpen) {
-        isDraggingRef.current = false;
+        activeLookPointerIdRef.current = null;
         return;
       }
+
       const dx = e.clientX - lastPointerRef.current.x;
       const dy = e.clientY - lastPointerRef.current.y;
       lastPointerRef.current = { x: e.clientX, y: e.clientY };
-      rovInputBus.addPointerDelta(dx, dy);
+      const sens =
+        e.pointerType === 'touch' || activeLookTypeRef.current === 'touch' ? 0.32 : 0.2;
+      rovInputBus.addPointerDelta(dx, dy, sens);
     };
 
-    const handlePointerUp = () => {
-      isDraggingRef.current = false;
+    const handlePointerEnd = (e: PointerEvent) => {
+      if (e.pointerId !== activeLookPointerIdRef.current) return;
+      try {
+        if (domElement.hasPointerCapture?.(e.pointerId)) {
+          domElement.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Ignore if pointer capture already dropped
+      }
+      activeLookPointerIdRef.current = null;
     };
 
     const handleWheel = (e: WheelEvent) => {
@@ -226,7 +301,7 @@ export function RovRig({
     };
 
     const handleClearInputs = () => {
-      isDraggingRef.current = false;
+      activeLookPointerIdRef.current = null;
       rovInputBus.clearAll();
     };
 
@@ -237,10 +312,12 @@ export function RovRig({
     };
 
     domElement.addEventListener('pointerdown', handlePointerDown);
+    domElement.addEventListener('pointermove', handlePointerMove);
+    domElement.addEventListener('lostpointercapture', handlePointerEnd);
     domElement.addEventListener('wheel', handleWheel, { passive: false });
     window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('pointercancel', handlePointerUp);
+    window.addEventListener('pointerup', handlePointerEnd);
+    window.addEventListener('pointercancel', handlePointerEnd);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('blur', handleClearInputs);
@@ -248,10 +325,12 @@ export function RovRig({
 
     return () => {
       domElement.removeEventListener('pointerdown', handlePointerDown);
+      domElement.removeEventListener('pointermove', handlePointerMove);
+      domElement.removeEventListener('lostpointercapture', handlePointerEnd);
       domElement.removeEventListener('wheel', handleWheel);
       window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener('pointerup', handlePointerEnd);
+      window.removeEventListener('pointercancel', handlePointerEnd);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', handleClearInputs);
@@ -343,6 +422,11 @@ export function RovRig({
     const uiBlocked =
       store.systemMenuOpen || store.openModalWaypointId !== null || store.controlsGuideOpen;
 
+    const gyroYaw = gyroDeltaRef.current.yawDeg;
+    const gyroPitch = gyroDeltaRef.current.pitchDeg;
+    gyroDeltaRef.current.yawDeg = 0;
+    gyroDeltaRef.current.pitchDeg = 0;
+
     // Respect QA manual camera override while active
     if (qaOverrideRef.current) {
       const { pos, lookAt } = qaOverrideRef.current;
@@ -369,8 +453,8 @@ export function RovRig({
             surge: THREE.MathUtils.clamp(busFrame.surge + xrSurge, -1, 1),
             sway: THREE.MathUtils.clamp(busFrame.sway + xrSway, -1, 1),
             heave: THREE.MathUtils.clamp(busFrame.heave + xrHeave, -1, 1),
-            yawDeltaDeg: busFrame.yawDeltaDeg + xrYawDeltaDeg,
-            pitchDeltaDeg: xrSession ? 0 : busFrame.pitchDeltaDeg,
+            yawDeltaDeg: busFrame.yawDeltaDeg + xrYawDeltaDeg + (xrSession ? 0 : gyroYaw),
+            pitchDeltaDeg: xrSession ? 0 : busFrame.pitchDeltaDeg + gyroPitch,
             turbo: busFrame.turbo || xrTurbo,
           };
 

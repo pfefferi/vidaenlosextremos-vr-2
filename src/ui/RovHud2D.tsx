@@ -38,8 +38,12 @@ function formatLoadingPercent(progress: number): number {
 
 function bindHoldControl(control: UiHoldControl) {
   const release = (e: ReactPointerEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
+    try {
+      if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Ignore if pointer capture is unavailable or already released
     }
     rovInputBus.setUiHold(control, false);
   };
@@ -48,7 +52,11 @@ function bindHoldControl(control: UiHoldControl) {
     onPointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
+      try {
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+      } catch {
+        // Synthetic pointer events in tests may not map to an active native pointer
+      }
       rovInputBus.setUiHold(control, true);
     },
     onPointerUp: release,
