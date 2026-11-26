@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import 'photoswipe/style.css';
-import { type SyntheticEvent, useEffect, useRef } from 'react';
+import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAssetEntry, resolveAssetUrl } from '../engine/assetUrl';
 import { useRovStore } from '../store/rovStore';
@@ -22,10 +22,16 @@ export function WaypointDialog() {
   const pswpOpenRef = useRef(false);
   const lastPswpCloseAtRef = useRef(0);
 
+  const [featuredIndex, setFeaturedIndex] = useState(0);
+
   const siteWaypoints = activeDiveSlug ? (waypointsBySite[activeDiveSlug] ?? []) : [];
   const activeWaypoint = openModalWaypointId
     ? siteWaypoints.find((wp) => wp.id === openModalWaypointId) ?? null
     : null;
+
+  useEffect(() => {
+    setFeaturedIndex(0);
+  }, [activeWaypoint?.id]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -103,9 +109,15 @@ export function WaypointDialog() {
     closeWaypointModal();
   };
 
+  const gallery = activeWaypoint?.content.gallery ?? [];
+  const safeFeaturedIndex =
+    gallery.length > 0 ? Math.min(featuredIndex, gallery.length - 1) : 0;
+  const featuredItem = gallery.length > 0 ? gallery[safeFeaturedIndex] : undefined;
+
   return (
     <dialog
       ref={dialogRef}
+      id="modal-card"
       className="wp-dialog"
       aria-labelledby={activeWaypoint ? 'wp-dialog-title' : undefined}
       onCancel={handleCancel}
@@ -118,20 +130,20 @@ export function WaypointDialog() {
     >
       {activeWaypoint ? (
         <div className="wp-dialog__shell">
-          <header className="wp-dialog__header">
-            <h2 id="wp-dialog-title" className="wp-dialog__title">
+          <header className="modal-header">
+            <h2 id="wp-dialog-title" className="modal-title">
               {t(activeWaypoint.titleKey)}
             </h2>
-            <div className="wp-dialog__header-actions">
+            <div className="modal-header-actions">
               <div
-                className="lang-toggle"
+                className="lang-selector modal-lang-selector"
                 role="group"
                 aria-label={t('menu.language')}
                 data-testid="dialog-lang-toggle"
               >
                 <button
                   type="button"
-                  className={`lang-toggle__btn${language === 'es' ? ' is-active' : ''}`}
+                  className={`lang-btn${language === 'es' ? ' active' : ''}`}
                   aria-pressed={language === 'es'}
                   onClick={() => setLanguage('es')}
                 >
@@ -139,7 +151,7 @@ export function WaypointDialog() {
                 </button>
                 <button
                   type="button"
-                  className={`lang-toggle__btn${language === 'en' ? ' is-active' : ''}`}
+                  className={`lang-btn${language === 'en' ? ' active' : ''}`}
                   aria-pressed={language === 'en'}
                   onClick={() => setLanguage('en')}
                 >
@@ -148,69 +160,104 @@ export function WaypointDialog() {
               </div>
               <button
                 type="button"
-                className="wp-dialog__close"
+                className="modal-close-btn"
                 onClick={closeWaypointModal}
                 aria-label={t('controls.close')}
                 data-testid="btn-close-waypoint"
               >
-                <X size={18} aria-hidden="true" />
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
           </header>
 
-          <div className="wp-dialog__body">
-            <p className="wp-dialog__description">{t(activeWaypoint.content.descriptionKey)}</p>
-
+          <div className="modal-body">
             {activeWaypoint.content.youtubeId ? (
-              <div className="wp-dialog__video">
-                <div className="wp-dialog__video-frame">
+              <>
+                <div className="video-wrapper">
                   <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${activeWaypoint.content.youtubeId}?rel=0`}
+                    src={`https://www.youtube-nocookie.com/embed/${activeWaypoint.content.youtubeId}?rel=0&modestbranding=1`}
                     title={t(activeWaypoint.titleKey)}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
                 </div>
                 {activeWaypoint.content.videoCaptionKey ? (
-                  <p className="wp-dialog__caption">{t(activeWaypoint.content.videoCaptionKey)}</p>
+                  <div className="media-caption">{t(activeWaypoint.content.videoCaptionKey)}</div>
                 ) : null}
-              </div>
+              </>
             ) : null}
 
-            {activeWaypoint.content.gallery?.length ? (
-              <div ref={galleryRef} className="wp-gallery" data-testid="waypoint-gallery">
-                {activeWaypoint.content.gallery.map((item) => {
-                  const thumbEntry = getAssetEntry(item.thumbKey);
-                  const fullEntry = getAssetEntry(item.fullKey);
-                  const thumbUrl = resolveAssetUrl(item.thumbKey);
-                  const fullUrl = resolveAssetUrl(item.fullKey);
-                  const caption = t(item.captionKey);
+            {gallery.length > 0 && featuredItem ? (
+              <>
+                <div className="modal-gallery-v2">
+                  <button
+                    type="button"
+                    className="gallery-main"
+                    onClick={() => lightboxRef.current?.loadAndOpen(safeFeaturedIndex)}
+                    aria-label={t(featuredItem.captionKey)}
+                  >
+                    <img
+                      src={resolveAssetUrl(featuredItem.fullKey)}
+                      alt={t(featuredItem.captionKey)}
+                      decoding="async"
+                    />
+                    <div className="gallery-caption">{t(featuredItem.captionKey)}</div>
+                  </button>
 
-                  return (
-                    <figure key={item.fullKey} className="wp-gallery__item">
-                      <a
-                        className="wp-gallery__link"
-                        href={fullUrl}
-                        data-pswp-width={fullEntry.width ?? 1600}
-                        data-pswp-height={fullEntry.height ?? 900}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <img
-                          src={thumbUrl}
-                          alt={caption}
-                          width={thumbEntry.width ?? 400}
-                          height={thumbEntry.height ?? 266}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </a>
-                      <figcaption className="wp-gallery__caption">{caption}</figcaption>
-                    </figure>
-                  );
-                })}
-              </div>
+                  <div
+                    ref={galleryRef}
+                    className="gallery-thumbs-row"
+                    data-testid="waypoint-gallery"
+                  >
+                    {gallery.map((item, idx) => {
+                      const thumbEntry = getAssetEntry(item.thumbKey);
+                      const fullEntry = getAssetEntry(item.fullKey);
+                      const thumbUrl = resolveAssetUrl(item.thumbKey);
+                      const fullUrl = resolveAssetUrl(item.fullKey);
+                      const caption = t(item.captionKey);
+
+                      return (
+                        <a
+                          key={item.fullKey}
+                          className={`gallery-thumb${idx === safeFeaturedIndex ? ' active' : ''}`}
+                          href={fullUrl}
+                          data-pswp-width={fullEntry.width ?? 1600}
+                          data-pswp-height={fullEntry.height ?? 900}
+                          onMouseEnter={() => setFeaturedIndex(idx)}
+                          onFocus={() => setFeaturedIndex(idx)}
+                          onClick={() => setFeaturedIndex(idx)}
+                        >
+                          <img
+                            src={thumbUrl}
+                            alt={caption}
+                            width={thumbEntry.width ?? 400}
+                            height={thumbEntry.height ?? 266}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="gallery-credits">
+                  <span>{t('credits.assets')}</span>{' '}
+                  <a
+                    href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                    target="_blank"
+                    rel="license noopener noreferrer"
+                  >
+                    CC BY-NC-SA 4.0
+                  </a>
+                  <span>{t('credits.sharealike')}</span>
+                </div>
+              </>
             ) : null}
+
+            <p className="wp-dialog__description modal-desc">
+              {t(activeWaypoint.content.descriptionKey)}
+            </p>
           </div>
         </div>
       ) : null}

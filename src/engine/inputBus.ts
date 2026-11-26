@@ -4,6 +4,16 @@ export interface KeyLikeEvent {
   repeat?: boolean;
 }
 
+export type UiHoldControl =
+  | 'move-up'
+  | 'move-down'
+  | 'move-left'
+  | 'move-right'
+  | 'ascend'
+  | 'descend'
+  | 'zoom-in'
+  | 'zoom-out';
+
 export interface SampledInputFrame {
   surge: number;
   sway: number;
@@ -18,6 +28,9 @@ export interface SampledInputFrame {
 }
 
 const GAMEPAD_DEADZONE = 0.15;
+const ARROW_YAW_DEG_PER_FRAME = 1.5;
+const ARROW_PITCH_DEG_PER_FRAME = 1.2;
+const KEY_OR_UI_ZOOM_STEP = 15;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -68,6 +81,7 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 
 export class RovInputBus {
   readonly keys = new Set<string>();
+  readonly uiHolds = new Set<UiHoldControl>();
   readonly mouseLookDelta = { yawDeg: 0, pitchDeg: 0 };
   readonly touchMove = { surge: 0, sway: 0, heave: 0 };
   readonly touchLookDelta = { yawDeg: 0, pitchDeg: 0 };
@@ -86,13 +100,23 @@ export class RovInputBus {
     this.keys.add(e.code);
 
     if (!e.repeat) {
-      if (e.code === 'KeyF') {
+      if (e.code === 'KeyF' || e.code === 'Enter' || e.code === 'NumpadEnter') {
         this.pendingScan = true;
       } else if (e.code === 'Escape' || e.code === 'KeyM') {
         this.pendingMenu = true;
-      } else if (e.code === 'Equal' || e.code === 'NumpadAdd' || e.code === 'BracketRight') {
+      } else if (
+        e.code === 'Digit2' ||
+        e.code === 'Equal' ||
+        e.code === 'NumpadAdd' ||
+        e.code === 'BracketRight'
+      ) {
         this.pendingSpeedStep += 1;
-      } else if (e.code === 'Minus' || e.code === 'NumpadSubtract' || e.code === 'BracketLeft') {
+      } else if (
+        e.code === 'Digit1' ||
+        e.code === 'Minus' ||
+        e.code === 'NumpadSubtract' ||
+        e.code === 'BracketLeft'
+      ) {
         this.pendingSpeedStep -= 1;
       }
     }
@@ -102,6 +126,18 @@ export class RovInputBus {
 
   handleKeyUp(e: KeyLikeEvent): void {
     this.keys.delete(e.code);
+  }
+
+  setUiHold(control: UiHoldControl, active: boolean): void {
+    if (active) {
+      this.uiHolds.add(control);
+    } else {
+      this.uiHolds.delete(control);
+    }
+  }
+
+  clearUiHolds(): void {
+    this.uiHolds.clear();
   }
 
   addPointerDelta(dx: number, dy: number, sensitivity = 0.2): void {
@@ -126,6 +162,7 @@ export class RovInputBus {
 
   clearAll(): void {
     this.keys.clear();
+    this.uiHolds.clear();
     this.mouseLookDelta.yawDeg = 0;
     this.mouseLookDelta.pitchDeg = 0;
     this.touchMove.surge = 0;
@@ -144,25 +181,35 @@ export class RovInputBus {
     let surge = this.touchMove.surge;
     let sway = this.touchMove.sway;
     let heave = this.touchMove.heave;
-    let turbo = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
+    let turbo = false;
 
-    if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) surge += 1;
-    if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) surge -= 1;
-    if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) sway += 1;
-    if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) sway -= 1;
-    if (this.keys.has('KeyE') || this.keys.has('Space')) heave += 1;
+    if (this.keys.has('KeyW') || this.uiHolds.has('move-up')) surge += 1;
+    if (this.keys.has('KeyS') || this.uiHolds.has('move-down')) surge -= 1;
+    if (this.keys.has('KeyD') || this.uiHolds.has('move-right')) sway += 1;
+    if (this.keys.has('KeyA') || this.uiHolds.has('move-left')) sway -= 1;
+    if (this.keys.has('Space') || this.uiHolds.has('ascend')) heave += 1;
     if (
-      this.keys.has('KeyQ') ||
+      this.keys.has('ShiftLeft') ||
+      this.keys.has('ShiftRight') ||
       this.keys.has('KeyC') ||
       this.keys.has('ControlLeft') ||
-      this.keys.has('ControlRight')
+      this.keys.has('ControlRight') ||
+      this.uiHolds.has('descend')
     ) {
       heave -= 1;
     }
 
     let yawDeltaDeg = this.mouseLookDelta.yawDeg + this.touchLookDelta.yawDeg;
     let pitchDeltaDeg = this.mouseLookDelta.pitchDeg + this.touchLookDelta.pitchDeg;
-    const zoomDelta = this.zoomDelta;
+
+    if (this.keys.has('ArrowLeft')) yawDeltaDeg += ARROW_YAW_DEG_PER_FRAME;
+    if (this.keys.has('ArrowRight')) yawDeltaDeg -= ARROW_YAW_DEG_PER_FRAME;
+    if (this.keys.has('ArrowUp')) pitchDeltaDeg += ARROW_PITCH_DEG_PER_FRAME;
+    if (this.keys.has('ArrowDown')) pitchDeltaDeg -= ARROW_PITCH_DEG_PER_FRAME;
+
+    let zoomDelta = this.zoomDelta;
+    if (this.keys.has('KeyE') || this.uiHolds.has('zoom-in')) zoomDelta -= KEY_OR_UI_ZOOM_STEP;
+    if (this.keys.has('KeyQ') || this.uiHolds.has('zoom-out')) zoomDelta += KEY_OR_UI_ZOOM_STEP;
 
     let scanPressed = this.pendingScan;
     let menuPressed = this.pendingMenu;
@@ -197,12 +244,14 @@ export class RovInputBus {
         const risingEdge = (idx: number): boolean =>
           isPressed(idx) && !Boolean(this.gamepadPrevButtons[idx]);
 
-        if (isPressed(6)) heave -= 1;
-        if (isPressed(7)) heave += 1;
+        if (isPressed(4)) heave -= 1;
+        if (isPressed(5)) heave += 1;
+        if (isPressed(6)) zoomDelta += KEY_OR_UI_ZOOM_STEP;
+        if (isPressed(7)) zoomDelta -= KEY_OR_UI_ZOOM_STEP;
         if (isPressed(2) || isPressed(10)) turbo = true;
         if (risingEdge(0)) scanPressed = true;
-        if (risingEdge(4)) speedStep -= 1;
-        if (risingEdge(5)) speedStep += 1;
+        if (risingEdge(12)) speedStep += 1;
+        if (risingEdge(13)) speedStep -= 1;
         if (risingEdge(9)) menuPressed = true;
 
         this.gamepadPrevButtons = Array.from({ length: buttons.length }, (_, idx) =>

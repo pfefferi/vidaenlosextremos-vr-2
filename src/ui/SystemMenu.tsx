@@ -1,20 +1,8 @@
-import {
-  Compass,
-  Gauge,
-  HelpCircle,
-  Home,
-  Languages,
-  Play,
-  RotateCcw,
-  Settings,
-  Smartphone,
-  Target,
-  X,
-} from 'lucide-react';
-import { useEffect } from 'react';
+import { Box, Compass, Glasses, HelpCircle, LogOut, Smartphone, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SPEED_LEVELS, formatSpeedLevel } from '../engine/rovPhysics';
 import { useRovStore } from '../store/rovStore';
+import { xrStore } from '../store/xrStore';
 
 export function SystemMenu() {
   const { t } = useTranslation();
@@ -23,7 +11,6 @@ export function SystemMenu() {
   const systemMenuOpen = useRovStore((s) => s.systemMenuOpen);
   const controlsGuideOpen = useRovStore((s) => s.controlsGuideOpen);
   const gamifiedMode = useRovStore((s) => s.gamifiedMode);
-  const speedIndex = useRovStore((s) => s.speedIndex);
   const comfortSnapTurn = useRovStore((s) => s.comfortSnapTurn);
   const language = useRovStore((s) => s.language);
   const gyroEnabled = useRovStore((s) => s.gyroEnabled);
@@ -31,14 +18,30 @@ export function SystemMenu() {
   const setSystemMenuOpen = useRovStore((s) => s.setSystemMenuOpen);
   const setControlsGuideOpen = useRovStore((s) => s.setControlsGuideOpen);
   const setGamifiedMode = useRovStore((s) => s.setGamifiedMode);
-  const setSpeedIndex = useRovStore((s) => s.setSpeedIndex);
   const setComfortSnapTurn = useRovStore((s) => s.setComfortSnapTurn);
   const setLanguage = useRovStore((s) => s.setLanguage);
   const setGyroEnabled = useRovStore((s) => s.setGyroEnabled);
-  const triggerReset = useRovStore((s) => s.triggerReset);
+  const setPreview3d = useRovStore((s) => s.setPreview3d);
   const returnToMenu = useRovStore((s) => s.returnToMenu);
 
-  const hasGyro = typeof window !== 'undefined' && 'DeviceOrientationEvent' in window;
+  const [xrSupported, setXrSupported] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (typeof navigator !== 'undefined' && navigator.xr?.isSessionSupported) {
+      navigator.xr
+        .isSessionSupported('immersive-vr')
+        .then((supported) => {
+          if (!cancelled) setXrSupported(supported);
+        })
+        .catch(() => {
+          if (!cancelled) setXrSupported(false);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (view !== 'dive' || !systemMenuOpen || controlsGuideOpen) return;
@@ -56,188 +59,143 @@ export function SystemMenu() {
   }
 
   return (
-    <div
-      className="modal-backdrop"
+    <aside
+      id="system-menu"
+      className="active"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="system-menu-title"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          setSystemMenuOpen(false);
-        }
-      }}
+      aria-label={t('ui.system_navigation')}
       data-testid="system-menu"
     >
-      <div className="modal-panel">
-        <header className="modal-panel__header">
-          <h2 id="system-menu-title" className="modal-panel__title">
-            <Settings size={18} aria-hidden="true" />
-            <span>{t('ui.system_navigation')}</span>
-          </h2>
+      <button
+        type="button"
+        className="menu-close-btn"
+        onClick={() => setSystemMenuOpen(false)}
+        aria-label={t('controls.close')}
+        data-testid="btn-close-system-menu"
+      >
+        <X size={18} aria-hidden="true" />
+      </button>
+
+      <div className="menu-item-row">
+        <span className="menu-label-text">{t('menu.gaming_mode')}</span>
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={gamifiedMode}
+            onChange={(e) => setGamifiedMode(e.target.checked)}
+            data-testid="switch-gamified-mode"
+          />
+          <span className="slider" />
+        </label>
+      </div>
+
+      <div className="menu-title">{t('menu.language')}</div>
+      <div className="lang-selector sidebar-selector" role="group" aria-label={t('menu.language')}>
+        <button
+          type="button"
+          className={`lang-btn${language === 'es' ? ' active' : ''}`}
+          aria-pressed={language === 'es'}
+          onClick={() => setLanguage('es')}
+          data-testid="sys-lang-es"
+        >
+          ES
+        </button>
+        <button
+          type="button"
+          className={`lang-btn${language === 'en' ? ' active' : ''}`}
+          aria-pressed={language === 'en'}
+          onClick={() => setLanguage('en')}
+          data-testid="sys-lang-en"
+        >
+          EN
+        </button>
+      </div>
+
+      <div className="menu-title">{t('ui.system_navigation')}</div>
+      <div className="menu-items">
+        <button
+          type="button"
+          className="menu-item"
+          onClick={() => {
+            setSystemMenuOpen(false);
+            setControlsGuideOpen(true);
+          }}
+          data-testid="btn-open-controls-guide"
+        >
+          <HelpCircle size={20} aria-hidden="true" />
+          <span>{t('ui.mission_controls')}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`menu-item ${gyroEnabled ? 'gyro-on' : 'gyro-off'}`}
+          aria-pressed={gyroEnabled}
+          onClick={() => {
+            setGyroEnabled(!gyroEnabled);
+          }}
+          data-testid="switch-gyro"
+        >
+          <Smartphone size={20} aria-hidden="true" />
+          <span>{t('ui.toggle_gyro')}</span>
+          <span className="gyro-state">{gyroEnabled ? 'ON' : 'OFF'}</span>
+        </button>
+
+        {xrSupported ? (
           <button
             type="button"
-            className="wp-dialog__close"
-            onClick={() => setSystemMenuOpen(false)}
-            aria-label={t('controls.close')}
-            data-testid="btn-close-system-menu"
+            className="menu-item"
+            onClick={() => {
+              setSystemMenuOpen(false);
+              void xrStore.enterVR();
+            }}
+            data-testid="sys-enter-vr"
           >
-            <X size={18} aria-hidden="true" />
+            <Glasses size={20} aria-hidden="true" />
+            <span>{t('vr.enter')}</span>
           </button>
-        </header>
+        ) : null}
 
-        <div className="modal-panel__body">
-          <div className="sys-actions-grid">
-            <button
-              type="button"
-              className="sys-btn sys-btn--primary"
-              onClick={() => setSystemMenuOpen(false)}
-              data-testid="btn-resume-dive"
-            >
-              <Play size={16} aria-hidden="true" />
-              <span>{t('controls.close')}</span>
-            </button>
-            <button
-              type="button"
-              className="sys-btn"
-              onClick={() => {
-                triggerReset();
-                setSystemMenuOpen(false);
-              }}
-              data-testid="btn-menu-reset"
-            >
-              <RotateCcw size={16} aria-hidden="true" />
-              <span>{t('ui.reset_position')}</span>
-            </button>
-          </div>
+        <button
+          type="button"
+          className="menu-item"
+          onClick={() => {
+            setSystemMenuOpen(false);
+            setPreview3d(true);
+          }}
+          data-testid="btn-preview-3d"
+        >
+          <Box size={20} aria-hidden="true" />
+          <span>{t('vr.preview_3d')}</span>
+        </button>
 
-          <div className="sys-row">
-            <span className="sys-row__label">
-              <Target size={16} aria-hidden="true" />
-              <span>{t('menu.gaming_mode')}</span>
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={gamifiedMode}
-              className="sys-switch"
-              onClick={() => setGamifiedMode(!gamifiedMode)}
-              data-testid="switch-gamified-mode"
-            >
-              {gamifiedMode ? 'ON' : 'OFF'}
-            </button>
-          </div>
-
-          <div className="sys-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-            <span className="sys-row__label">
-              <Gauge size={16} aria-hidden="true" />
-              <span>{t('ui.speed')}</span>
-            </span>
-            <div className="sys-speed-ladder" role="group" aria-label={t('ui.speed')}>
-              {SPEED_LEVELS.map((level, index) => (
-                <button
-                  key={level}
-                  type="button"
-                  className={`sys-speed-chip${index === speedIndex ? ' is-active' : ''}`}
-                  aria-pressed={index === speedIndex}
-                  onClick={() => setSpeedIndex(index)}
-                  data-testid={`speed-chip-${index}`}
-                >
-                  {formatSpeedLevel(level)}×
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="sys-row">
-            <span className="sys-row__label">
-              <Compass size={16} aria-hidden="true" />
-              <span>{t('vr.comfort_turn')}</span>
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={comfortSnapTurn}
-              className="sys-switch"
-              onClick={() => setComfortSnapTurn(!comfortSnapTurn)}
+        <div className="menu-item-row menu-item-row--sub">
+          <span className="menu-label-text" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <Compass size={14} aria-hidden="true" />
+            <span>{t('vr.comfort_turn')}</span>
+          </span>
+          <label className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={comfortSnapTurn}
+              onChange={(e) => setComfortSnapTurn(e.target.checked)}
               data-testid="switch-comfort-turn"
-            >
-              {comfortSnapTurn ? 'ON' : 'OFF'}
-            </button>
-          </div>
-
-          <div className="sys-row">
-            <span className="sys-row__label">
-              <Languages size={16} aria-hidden="true" />
-              <span>{t('menu.language')}</span>
-            </span>
-            <div className="lang-toggle" role="group" aria-label={t('menu.language')}>
-              <button
-                type="button"
-                className={`lang-toggle__btn${language === 'es' ? ' is-active' : ''}`}
-                aria-pressed={language === 'es'}
-                onClick={() => setLanguage('es')}
-                data-testid="sys-lang-es"
-              >
-                ES
-              </button>
-              <button
-                type="button"
-                className={`lang-toggle__btn${language === 'en' ? ' is-active' : ''}`}
-                aria-pressed={language === 'en'}
-                onClick={() => setLanguage('en')}
-                data-testid="sys-lang-en"
-              >
-                EN
-              </button>
-            </div>
-          </div>
-
-          {hasGyro ? (
-            <div className="sys-row">
-              <span className="sys-row__label">
-                <Smartphone size={16} aria-hidden="true" />
-                <span>{t('ui.toggle_gyro')}</span>
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={gyroEnabled}
-                className="sys-switch"
-                onClick={() => setGyroEnabled(!gyroEnabled)}
-                data-testid="switch-gyro"
-              >
-                {gyroEnabled ? 'ON' : 'OFF'}
-              </button>
-            </div>
-          ) : null}
-
-          <div className="sys-actions-grid">
-            <button
-              type="button"
-              className="sys-btn"
-              onClick={() => {
-                setSystemMenuOpen(false);
-                setControlsGuideOpen(true);
-              }}
-              data-testid="btn-open-controls-guide"
-            >
-              <HelpCircle size={16} aria-hidden="true" />
-              <span>{t('ui.mission_controls')}</span>
-            </button>
-
-            <button
-              type="button"
-              className="sys-btn sys-btn--danger"
-              onClick={returnToMenu}
-              data-testid="btn-return-home"
-            >
-              <Home size={16} aria-hidden="true" />
-              <span>{t('ui.return_to_home')}</span>
-            </button>
-          </div>
+            />
+            <span className="slider" />
+          </label>
         </div>
+
+        <button
+          type="button"
+          className="menu-item danger"
+          onClick={returnToMenu}
+          data-testid="btn-return-home"
+        >
+          <LogOut size={20} aria-hidden="true" />
+          <span>{t('ui.return_to_home')}</span>
+        </button>
       </div>
-    </div>
+    </aside>
   );
 }
 

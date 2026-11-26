@@ -59,6 +59,50 @@ describe('RovInputBus', () => {
     expect(nextFrame.pitchDeltaDeg).toBe(0);
   });
 
+  it('supports v1 keyboard bindings (Arrows look, Space/Shift heave, E/Q zoom, 1/2 speed, Enter scan) and UI holds', () => {
+    const bus = createRovInputBus();
+    const target = { tagName: 'CANVAS' } as unknown as EventTarget;
+
+    bus.handleKeyDown({ code: 'ArrowLeft', target });
+    bus.handleKeyDown({ code: 'Space', target });
+    bus.handleKeyDown({ code: 'KeyE', target });
+    bus.handleKeyDown({ code: 'Digit2', target, repeat: false });
+    bus.handleKeyDown({ code: 'Enter', target, repeat: false });
+
+    const frame1 = bus.sampleFrame();
+    expect(frame1.yawDeltaDeg).toBeGreaterThan(0);
+    expect(frame1.heave).toBe(1);
+    expect(frame1.zoomDelta).toBeLessThan(0);
+    expect(frame1.speedStep).toBe(1);
+    expect(frame1.scanPressed).toBe(true);
+
+    bus.clearAll();
+    bus.handleKeyDown({ code: 'ShiftLeft', target });
+    bus.handleKeyDown({ code: 'KeyQ', target });
+    bus.handleKeyDown({ code: 'Digit1', target, repeat: false });
+
+    const frame2 = bus.sampleFrame();
+    expect(frame2.heave).toBe(-1);
+    expect(frame2.zoomDelta).toBeGreaterThan(0);
+    expect(frame2.speedStep).toBe(-1);
+
+    bus.clearAll();
+    bus.setUiHold('move-up', true);
+    bus.setUiHold('ascend', true);
+    bus.setUiHold('zoom-in', true);
+
+    const holdFrame = bus.sampleFrame();
+    expect(holdFrame.surge).toBe(1);
+    expect(holdFrame.heave).toBe(1);
+    expect(holdFrame.zoomDelta).toBeLessThan(0);
+
+    bus.clearUiHolds();
+    const releasedFrame = bus.sampleFrame();
+    expect(releasedFrame.surge).toBe(0);
+    expect(releasedFrame.heave).toBe(0);
+    expect(releasedFrame.zoomDelta).toBe(0);
+  });
+
   it('safely samples gamepads with fewer than 16 buttons and applies deadzone + rising edge', () => {
     const bus = createRovInputBus();
     const shortGamepad = {
