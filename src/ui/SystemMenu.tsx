@@ -167,7 +167,9 @@ export function SystemMenu() {
             className="menu-item"
             onClick={() => {
               setSystemMenuOpen(false);
-              void xrStore.enterVR();
+              void xrStore.enterVR().catch((err: unknown) => {
+                console.warn('[VR] Unable to start WebXR session:', err);
+              });
             }}
             data-testid="sys-enter-vr"
           >

@@ -557,3 +557,265 @@ test('6. Mobile touch drag, multi-touch hold+look, pinch lock, and gyroscope', a
 
   assertNoErrors(tracker, 'Mobile touch & gyro QA');
 });
+
+test('7. Cardboard WebXR session entry/exit & single-click WebGL context-loss recovery', async ({
+  page,
+}) => {
+  const tracker = attachErrorTracker(page);
+
+  await page.addInitScript(() => {
+    // Capture WebGL2 context creation attributes and emulate Android Chrome xrCompatible support
+    // (headless SwiftShader ignores xrCompatible at context creation and throws on makeXRCompatible)
+    const win = window as unknown as Record<string, unknown>;
+    win.__XR_COMPATIBLE_REQUESTED__ = false;
+    const origGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      type: string,
+      attrs?: WebGLContextAttributes & { xrCompatible?: boolean }
+    ) {
+      const ctx = origGetContext.call(this, type, attrs as WebGLContextAttributes);
+      if (type === 'webgl2' && ctx && attrs?.xrCompatible === true) {
+        win.__XR_COMPATIBLE_REQUESTED__ = true;
+        const glCtx = ctx as WebGL2RenderingContext;
+        const origGetAttrs = glCtx.getContextAttributes.bind(glCtx);
+        glCtx.getContextAttributes = () => {
+          const base = origGetAttrs();
+          return base ? { ...base, xrCompatible: true } : base;
+        };
+      }
+      return ctx as RenderingContext | null;
+    } as typeof HTMLCanvasElement.prototype.getContext;
+
+    // Cardboard on Chrome Android has no XRWebGLBinding (uses XRWebGLLayer fallback)
+    try {
+      delete (window as unknown as Record<string, unknown>).XRWebGLBinding;
+    } catch {
+      (window as unknown as Record<string, unknown>).XRWebGLBinding = undefined;
+    }
+    try {
+      delete (window as unknown as Record<string, unknown>).XRMediaBinding;
+    } catch {
+      (window as unknown as Record<string, unknown>).XRMediaBinding = undefined;
+    }
+
+    const identityMatrix = new Float32Array([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1,
+    ]);
+    const projMatrix = new Float32Array([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, -1, -1,
+      0, 0, -0.1, 0,
+    ]);
+    const makeTransform = () => ({
+      matrix: identityMatrix,
+      inverse: { matrix: identityMatrix },
+      position: { x: 0, y: 0, z: 0, w: 1 },
+      orientation: { x: 0, y: 0, z: 0, w: 1 },
+    });
+
+    class MockXRWebGLLayer {
+      framebuffer = null;
+      framebufferWidth = 800;
+      framebufferHeight = 600;
+      ignoreDepthValues = true;
+      fixedFoveation = 0;
+
+      static getNativeFramebufferScaleFactor() {
+        return 1;
+      }
+
+      getViewport(view: { eye?: string }) {
+        return {
+          x: view?.eye === 'right' ? 400 : 0,
+          y: 0,
+          width: 400,
+          height: 600,
+        };
+      }
+    }
+    (window as unknown as Record<string, unknown>).XRWebGLLayer = MockXRWebGLLayer;
+
+    const createMockSession = () => {
+      const listeners = new Map<string, Set<(ev: unknown) => void>>();
+      const rafHandles = new Map<number, number>();
+      let nextRafId = 1;
+      let ended = false;
+      const gazeInputSource = {
+        handedness: 'none',
+        targetRayMode: 'gaze',
+        targetRaySpace: {},
+        gripSpace: undefined,
+        profiles: ['generic-trigger-touchpad'],
+      };
+      const refSpace = {
+        getOffsetReferenceSpace: () => refSpace,
+      };
+      const renderState: { baseLayer: unknown; layers: unknown } = {
+        baseLayer: null,
+        layers: undefined,
+      };
+
+      const dispatch = (type: string, eventObj: Record<string, unknown> = {}) => {
+        const set = listeners.get(type);
+        if (!set) return;
+        const payload = { type, ...eventObj };
+        for (const fn of Array.from(set)) {
+          fn(payload);
+        }
+      };
+
+      const session = {
+        environmentBlendMode: 'opaque',
+        visibilityState: 'visible',
+        frameRate: 60,
+        supportedFrameRates: [60],
+        inputSources: [gazeInputSource],
+        renderState,
+        addEventListener(type: string, fn: (ev: unknown) => void) {
+          let set = listeners.get(type);
+          if (!set) {
+            set = new Set();
+            listeners.set(type, set);
+          }
+          set.add(fn);
+        },
+        removeEventListener(type: string, fn: (ev: unknown) => void) {
+          listeners.get(type)?.delete(fn);
+        },
+        updateRenderState(next: Record<string, unknown>) {
+          Object.assign(renderState, next);
+        },
+        async updateTargetFrameRate(rate: number) {
+          session.frameRate = rate;
+        },
+        async requestReferenceSpace() {
+          return refSpace;
+        },
+        requestAnimationFrame(cb: (time: number, frame: unknown) => void) {
+          const id = nextRafId++;
+          const nativeId = window.requestAnimationFrame((ts) => {
+            rafHandles.delete(id);
+            if (ended) return;
+            const frame = {
+              session,
+              getViewerPose: () => ({
+                transform: makeTransform(),
+                views: [
+                  {
+                    eye: 'left',
+                    projectionMatrix: projMatrix,
+                    transform: makeTransform(),
+                  },
+                  {
+                    eye: 'right',
+                    projectionMatrix: projMatrix,
+                    transform: makeTransform(),
+                  },
+                ],
+              }),
+              getPose: () => ({
+                transform: makeTransform(),
+                emulatedPosition: false,
+              }),
+            };
+            cb(ts, frame);
+          });
+          rafHandles.set(id, nativeId);
+          return id;
+        },
+        cancelAnimationFrame(id: number) {
+          const nativeId = rafHandles.get(id);
+          if (nativeId !== undefined) {
+            window.cancelAnimationFrame(nativeId);
+            rafHandles.delete(id);
+          }
+        },
+        async end() {
+          if (ended) return;
+          ended = true;
+          for (const nativeId of rafHandles.values()) {
+            window.cancelAnimationFrame(nativeId);
+          }
+          rafHandles.clear();
+          dispatch('end', { session });
+        },
+      };
+
+      return session;
+    };
+
+    const xrMock = {
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      isSessionSupported: async (mode: string) => mode === 'immersive-vr',
+      requestSession: async () => createMockSession(),
+    };
+
+    Object.defineProperty(navigator, 'xr', {
+      configurable: true,
+      get: () => xrMock,
+    });
+  });
+
+  await page.goto('/?site=whale-fall', { waitUntil: 'networkidle' });
+  await waitForDiveReady(page, 100_000);
+
+  // Verify WebGL2 context was requested with xrCompatible: true and reports xrCompatible === true
+  const xrCompatCheck = await page.evaluate(() => {
+    const win = window as unknown as { __XR_COMPATIBLE_REQUESTED__?: boolean };
+    const canvas = document.querySelector('canvas');
+    const gl = canvas?.getContext('webgl2');
+    return {
+      requested: Boolean(win.__XR_COMPATIBLE_REQUESTED__),
+      attr: gl?.getContextAttributes()?.xrCompatible ?? null,
+    };
+  });
+  expect(xrCompatCheck.requested).toBe(true);
+  expect(xrCompatCheck.attr).toBe(true);
+
+  // Enter Cardboard-like VR session
+  const enterVrBtn = page.getByTestId('btn-enter-vr');
+  await expect(enterVrBtn).toBeVisible();
+  await enterVrBtn.click();
+
+  const exitVrBtn = page.getByTestId('btn-exit-vr');
+  await expect(exitVrBtn).toBeVisible();
+  await waitAnimationFrames(page, 4);
+  await page.waitForTimeout(250);
+
+  await expect(page.getByText('3D Scene Error')).toHaveCount(0);
+  await expect(page.getByText('WebGL2 Graphics Context Lost')).toHaveCount(0);
+
+  // Exit VR and confirm clean return to 2D HUD
+  await exitVrBtn.click();
+  await expect(page.getByTestId('rov-hud-2d')).toBeVisible();
+  await waitAnimationFrames(page, 3);
+
+  assertNoErrors(tracker, 'Cardboard WebXR entry/exit');
+
+  // Simulate WebGL context loss and verify single-overlay + single-click recovery
+  await page.evaluate(() => {
+    const canvas = document.querySelector('canvas');
+    const gl = canvas?.getContext('webgl2');
+    const ext = gl?.getExtension('WEBGL_lose_context');
+    if (!ext) {
+      throw new Error('WEBGL_lose_context extension unavailable');
+    }
+    ext.loseContext();
+  });
+
+  await expect(page.getByText('WebGL2 Graphics Context Lost')).toBeVisible();
+  await expect(page.getByText('3D Scene Error')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Reload 3D Scene' }).click();
+  await expect(page.getByText('WebGL2 Graphics Context Lost')).toHaveCount(0);
+  await expect(page.getByText('3D Scene Error')).toHaveCount(0);
+  await waitForDiveReady(page, 100_000);
+
+  assertNoErrors(tracker, 'WebGL context-loss recovery');
+});

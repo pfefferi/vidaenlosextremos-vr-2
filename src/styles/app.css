@@ -770,6 +770,9 @@ body::-webkit-scrollbar-thumb {
 }
 
 @media (max-width: 768px) and (orientation: portrait) {
+  #controls-container {
+    bottom: max(58px, calc(env(safe-area-inset-bottom, 0px) + 52px));
+  }
   #telemetry-block {
     bottom: auto;
     top: 86px;
